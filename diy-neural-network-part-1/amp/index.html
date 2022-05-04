@@ -13,7 +13,7 @@
     <meta property="og:type" content="article" />
     <meta property="og:title" content="DIY neural network (part 1)" />
     <meta property="og:description" content="We are going to start as simple as it can get: Creating a baby neural network that can barely solve problems each of us could easily solve by hand." />
-    <meta property="og:url" content="http://localhost:2368/diy-neural-network-part-1/" />
+    <meta property="og:url" content="http://frank690.github.io/diy-neural-network-part-1/" />
     <meta property="og:image" content="https://images.unsplash.com/photo-1505235687559-28b5f54645b7?crop&#x3D;entropy&amp;cs&#x3D;tinysrgb&amp;fit&#x3D;max&amp;fm&#x3D;jpg&amp;ixid&#x3D;MnwxMTc3M3wwfDF8c2VhcmNofDF8fHNlZWRsaW5nfGVufDB8fHx8MTY0MTIzODkzNg&amp;ixlib&#x3D;rb-1.2.1&amp;q&#x3D;80&amp;w&#x3D;2000" />
     <meta property="article:published_time" content="2021-08-17T18:28:45.000Z" />
     <meta property="article:modified_time" content="2022-01-19T21:01:03.000Z" />
@@ -26,7 +26,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="DIY neural network (part 1)" />
     <meta name="twitter:description" content="We are going to start as simple as it can get: Creating a baby neural network that can barely solve problems each of us could easily solve by hand." />
-    <meta name="twitter:url" content="http://localhost:2368/diy-neural-network-part-1/" />
+    <meta name="twitter:url" content="http://frank690.github.io/diy-neural-network-part-1/" />
     <meta name="twitter:image" content="https://images.unsplash.com/photo-1505235687559-28b5f54645b7?crop&#x3D;entropy&amp;cs&#x3D;tinysrgb&amp;fit&#x3D;max&amp;fm&#x3D;jpg&amp;ixid&#x3D;MnwxMTc3M3wwfDF8c2VhcmNofDF8fHNlZWRsaW5nfGVufDB8fHx8MTY0MTIzODkzNg&amp;ixlib&#x3D;rb-1.2.1&amp;q&#x3D;80&amp;w&#x3D;2000" />
     <meta name="twitter:label1" content="Written by" />
     <meta name="twitter:data1" content="Frank Eschner" />
@@ -42,10 +42,10 @@
     "publisher": {
         "@type": "Organization",
         "name": "sffresch",
-        "url": "http://localhost:2368/",
+        "url": "http://frank690.github.io/",
         "logo": {
             "@type": "ImageObject",
-            "url": "http://localhost:2368/favicon.ico",
+            "url": "http://frank690.github.io/favicon.ico",
             "width": 48,
             "height": 48
         }
@@ -55,17 +55,17 @@
         "name": "Frank Eschner",
         "image": {
             "@type": "ImageObject",
-            "url": "http://localhost:2368/content/images/2021/08/68586209_10205828296182785_2060227135364136960_n.jpg",
+            "url": "http://frank690.github.io/content/images/2021/08/68586209_10205828296182785_2060227135364136960_n.jpg",
             "width": 1536,
             "height": 2048
         },
-        "url": "http://localhost:2368/author/frank690/",
+        "url": "http://frank690.github.io/author/frank690/",
         "sameAs": [
             "https://sffresch.de"
         ]
     },
     "headline": "DIY neural network (part 1)",
-    "url": "http://localhost:2368/diy-neural-network-part-1/",
+    "url": "http://frank690.github.io/diy-neural-network-part-1/",
     "datePublished": "2021-08-17T18:28:45.000Z",
     "dateModified": "2022-01-19T21:01:03.000Z",
     "image": {
@@ -78,7 +78,7 @@
     "description": "We are going to start as simple as it can get: Creating a baby neural network that can barely solve problems each of us could easily solve by hand.",
     "mainEntityOfPage": {
         "@type": "WebPage",
-        "@id": "http://localhost:2368/"
+        "@id": "http://frank690.github.io/"
     }
 }
     </script>
@@ -753,7 +753,7 @@ h = a[2]</code></pre><h3 id="computing-the-loss">Computing the loss</h3><p>Since
     :param y: True results of the data.
     :return: Derivative of the cross entropy loss with the current hypothesis.
     """
-    return -(y // h) + ((1 - y) // (1 - h))</code></pre><h3 id="backpropagation">Backpropagation</h3><p>After computing the prediction of our neural network (also known as the hypothesis), we now work our way back(wards) to the weights and biases. This is done by looking at the loss and computing the gradients of each of our previously computed values.</p><p>Side note:<br />If you are wondering what a gradient is or what it has to do with your neural network, check out my post: <a href="http://localhost:2368/diy-neural-network-part-1/what-the-grad/">what the grad</a>.</p><pre><code class="language-python">dz = dict()
+    return -(y // h) + ((1 - y) // (1 - h))</code></pre><h3 id="backpropagation">Backpropagation</h3><p>After computing the prediction of our neural network (also known as the hypothesis), we now work our way back(wards) to the weights and biases. This is done by looking at the loss and computing the gradients of each of our previously computed values.</p><p>Side note:<br />If you are wondering what a gradient is or what it has to do with your neural network, check out my post: <a href="http://frank690.github.io/diy-neural-network-part-1/what-the-grad/">what the grad</a>.</p><pre><code class="language-python">dz = dict()
 da = dict()
 
 da[2] = cross_entropy_derivative(h=h, y=y)
