@@ -16,7 +16,7 @@
     <meta property="og:url" content="http://frank690.github.io/diy-neural-network-part-1/" />
     <meta property="og:image" content="https://images.unsplash.com/photo-1505235687559-28b5f54645b7?crop&#x3D;entropy&amp;cs&#x3D;tinysrgb&amp;fit&#x3D;max&amp;fm&#x3D;jpg&amp;ixid&#x3D;MnwxMTc3M3wwfDF8c2VhcmNofDF8fHNlZWRsaW5nfGVufDB8fHx8MTY0MTIzODkzNg&amp;ixlib&#x3D;rb-1.2.1&amp;q&#x3D;80&amp;w&#x3D;2000" />
     <meta property="article:published_time" content="2021-08-17T18:28:45.000Z" />
-    <meta property="article:modified_time" content="2022-05-04T11:42:10.000Z" />
+    <meta property="article:modified_time" content="2022-05-14T17:16:05.000Z" />
     <meta property="article:tag" content="ANN" />
     <meta property="article:tag" content="data-science" />
     <meta property="article:tag" content="DIY" />
@@ -67,7 +67,7 @@
     "headline": "DIY neural network (part 1)",
     "url": "http://frank690.github.io/diy-neural-network-part-1/",
     "datePublished": "2021-08-17T18:28:45.000Z",
-    "dateModified": "2022-05-04T11:42:10.000Z",
+    "dateModified": "2022-05-14T17:16:05.000Z",
     "image": {
         "@type": "ImageObject",
         "url": "https://images.unsplash.com/photo-1505235687559-28b5f54645b7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxMTc3M3wwfDF8c2VhcmNofDF8fHNlZWRsaW5nfGVufDB8fHx8MTY0MTIzODkzNg&ixlib=rb-1.2.1&q=80&w=2000",
@@ -702,7 +702,7 @@ def generate_data(N: int) -&gt; Tuple[np.ndarray, np.ndarray]:
     """
     X = np.repeat(np.array([[0, 0], [0, 1], [1, 0], [1, 1]]), N, axis=0)
     X = X + np.random.randn(4 * N, 2) * 0.2
-    y = np.repeat([0, 1, 0, 1], N)
+    y = np.repeat([0, 1, 1, 0], N)
     y = np.reshape(y, (len(y), 1))
 
     return X, y</code></pre><p>Using the generate_data function gets us some nice training and testing sets to feed to our ANN.</p><pre><code class="language-python">X_train, y_train = generate_data(N=100)

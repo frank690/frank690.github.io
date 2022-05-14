@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>DIY neural network (part 1)</title>
-    <link rel="stylesheet" href="../assets/built/screen.css%3Fv=dbdeb6a817.css">
+    <link rel="stylesheet" href="../assets/built/screen.css%3Fv=a00d03b799.css">
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700,700i%7CDosis:600,700&amp;subset=latin-ext">
         
@@ -20,7 +20,7 @@
     <meta property="og:url" content="http://frank690.github.io/diy-neural-network-part-1/" />
     <meta property="og:image" content="https://images.unsplash.com/photo-1505235687559-28b5f54645b7?crop&#x3D;entropy&amp;cs&#x3D;tinysrgb&amp;fit&#x3D;max&amp;fm&#x3D;jpg&amp;ixid&#x3D;MnwxMTc3M3wwfDF8c2VhcmNofDF8fHNlZWRsaW5nfGVufDB8fHx8MTY0MTIzODkzNg&amp;ixlib&#x3D;rb-1.2.1&amp;q&#x3D;80&amp;w&#x3D;2000" />
     <meta property="article:published_time" content="2021-08-17T18:28:45.000Z" />
-    <meta property="article:modified_time" content="2022-05-04T11:42:10.000Z" />
+    <meta property="article:modified_time" content="2022-05-14T17:16:05.000Z" />
     <meta property="article:tag" content="ANN" />
     <meta property="article:tag" content="data-science" />
     <meta property="article:tag" content="DIY" />
@@ -71,7 +71,7 @@
     "headline": "DIY neural network (part 1)",
     "url": "http://frank690.github.io/diy-neural-network-part-1/",
     "datePublished": "2021-08-17T18:28:45.000Z",
-    "dateModified": "2022-05-04T11:42:10.000Z",
+    "dateModified": "2022-05-14T17:16:05.000Z",
     "image": {
         "@type": "ImageObject",
         "url": "https://images.unsplash.com/photo-1505235687559-28b5f54645b7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxMTc3M3wwfDF8c2VhcmNofDF8fHNlZWRsaW5nfGVufDB8fHx8MTY0MTIzODkzNg&ixlib=rb-1.2.1&q=80&w=2000",
@@ -90,7 +90,17 @@
     <meta name="generator" content="Ghost 4.17" />
     <link rel="alternate" type="application/rss+xml" title="sffresch" href="../rss/index.html" />
     
-    <!-- Inline Latex Math -->
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KGHY4JLHRR"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-KGHY4JLHRR');
+</script>
+
+<!-- Inline Latex Math -->
 <script type="text/x-mathjax-config">
    MathJax.Hub.Config({
      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']],
@@ -203,7 +213,7 @@ def generate_data(N: int) -&gt; Tuple[np.ndarray, np.ndarray]:
     """
     X = np.repeat(np.array([[0, 0], [0, 1], [1, 0], [1, 1]]), N, axis=0)
     X = X + np.random.randn(4 * N, 2) * 0.2
-    y = np.repeat([0, 1, 0, 1], N)
+    y = np.repeat([0, 1, 1, 0], N)
     y = np.reshape(y, (len(y), 1))
 
     return X, y</code></pre><p>Using the generate_data function gets us some nice training and testing sets to feed to our ANN.</p><pre><code class="language-python">X_train, y_train = generate_data(N=100)
@@ -407,7 +417,7 @@ Loss (999): 0.08227351128655165</code></pre><h3 id="predicting">Predicting</h3><
         integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
         crossorigin="anonymous">
         </script>
-    <script src="../assets/built/main.min.js%3Fv=dbdeb6a817"></script>
+    <script src="../assets/built/main.min.js%3Fv=a00d03b799"></script>
 
     <div id="fb-root"></div>
 <script async defer crossorigin="anonymous"
