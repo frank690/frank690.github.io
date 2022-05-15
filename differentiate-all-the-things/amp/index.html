@@ -16,7 +16,7 @@
     <meta property="og:url" content="http://frank690.github.io/differentiate-all-the-things/" />
     <meta property="og:image" content="https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?crop&#x3D;entropy&amp;cs&#x3D;tinysrgb&amp;fit&#x3D;max&amp;fm&#x3D;jpg&amp;ixid&#x3D;MnwxMTc3M3wwfDF8c2VhcmNofDJ8fGNhdHMlMjBhbmQlMjBkb2dzfGVufDB8fHx8MTY1MTU2MjAyMA&amp;ixlib&#x3D;rb-1.2.1&amp;q&#x3D;80&amp;w&#x3D;2000" />
     <meta property="article:published_time" content="2022-05-03T07:10:46.000Z" />
-    <meta property="article:modified_time" content="2022-05-03T16:41:34.000Z" />
+    <meta property="article:modified_time" content="2022-05-14T19:25:31.000Z" />
     <meta property="article:tag" content="ANN" />
     <meta property="article:tag" content="theory" />
     <meta property="article:tag" content="data-science" />
@@ -69,7 +69,7 @@
     "headline": "Differentiate all the things",
     "url": "http://frank690.github.io/differentiate-all-the-things/",
     "datePublished": "2022-05-03T07:10:46.000Z",
-    "dateModified": "2022-05-03T16:41:34.000Z",
+    "dateModified": "2022-05-14T19:25:31.000Z",
     "image": {
         "@type": "ImageObject",
         "url": "https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxMTc3M3wwfDF8c2VhcmNofDJ8fGNhdHMlMjBhbmQlMjBkb2dzfGVufDB8fHx8MTY1MTU2MjAyMA&ixlib=rb-1.2.1&q=80&w=2000",
@@ -678,7 +678,7 @@
             </figure>
             <section class="post-content">
 
-                <p>In this post, I am going to show you how to compute and implement the combination of the derivative of the <a href="https://en.wikipedia.org/wiki/Softmax_function">softmax</a> and the <a href="https://en.wikipedia.org/wiki/Cross_entropy#Cross-entropy_loss_function_and_logistic_regression">log-loss</a> functions to run your <a href="https://en.wikipedia.org/wiki/Gradient_descent">gradient descent</a> algorithm.</p><p><strong>TL;DR</strong>: <a href="https://github.com/frank690/sffresch-code/blob/main/differentiate-all-the-things/code.ipynb">This is the code</a> and these are the derivatives. $ \frac{\delta L}{\delta w_{y}} =  - X_{n}^{T} * (1 - S_{y}), \frac{\delta L}{\delta w_{j}} = X_{n}^{T} * S_{j} $</p><p>Let us assume that you want to create your neural network from scratch and you have decided upon using it for <a href="https://en.wikipedia.org/wiki/Multiclass_classification">multiclass classification</a> (MCC). There is a good chance, that you will choose the softmax in combination with the log-loss to do the job. Now to update the weights of your network accordingly, you need to know the solution to the differentiation of the whole thing (with respect to (wrt) the weights that you want to optimize).</p><p>$$ \frac{\delta L}{\delta w}=-\frac{1}{N}\sum_{n=1}^{N}log(\frac{e^{X_{n}w_{y}}}{\sum_{c=1}^{C}e^{X_{n}w_{c}}})\frac{\delta}{\delta w} $$</p><p>I highly encourage you to grab some pen and paper and try to come up with the derivatives yourself. In case you are stuck, just keep on reading until you know how to continue. To avoid confusion from the get-go, let us define what each term of the differentiation means and also what dimensions it has.</p><table>
+                <p>In this post, I am going to show you how to compute and implement the combination of the derivative of the <a href="https://en.wikipedia.org/wiki/Softmax_function">softmax</a> and the <a href="https://en.wikipedia.org/wiki/Cross_entropy#Cross-entropy_loss_function_and_logistic_regression">log-loss</a> functions to run your <a href="https://en.wikipedia.org/wiki/Gradient_descent">gradient descent</a> algorithm.</p><p><strong>TL;DR</strong>: <a href="https://github.com/frank690/sffresch-code/blob/main/differentiate-all-the-things/code.ipynb">This is the code</a> and these are the derivatives. $ \frac{\delta L}{\delta w_{y}} =  - X_{n}^{T} * (1 - S_{y}), \frac{\delta L}{\delta w_{j}} = X_{n}^{T} * S_{j} $</p><h3 id="preface">Preface</h3><p>Let us assume that you want to create your neural network from scratch and you have decided upon using it for <a href="https://en.wikipedia.org/wiki/Multiclass_classification">multiclass classification</a> (MCC). There is a good chance, that you will choose the softmax in combination with the log-loss to do the job. Now to update the weights of your network accordingly, you need to know the solution to the differentiation of the whole thing (with respect to (wrt) the weights that you want to optimize).</p><p>$$ \frac{\delta L}{\delta w}=-\frac{1}{N}\sum_{n=1}^{N}log(\frac{e^{X_{n}w_{y}}}{\sum_{c=1}^{C}e^{X_{n}w_{c}}})\frac{\delta}{\delta w} $$</p><p>I highly encourage you to grab some pen and paper and try to come up with the derivatives yourself. In case you are stuck, just keep on reading until you know how to continue. To avoid confusion from the get-go, let us define what each term of the differentiation means and also what dimensions it has.</p><table>
     <tr>
         <td><b>Symbol</b></td>
         <td><b>Meaning</b></td>

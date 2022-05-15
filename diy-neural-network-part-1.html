@@ -5,13 +5,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>DIY neural network (part 1)</title>
-    <link rel="stylesheet" href="../assets/built/screen.css%3Fv=f5d2ac8d11.css">
+    <link rel="stylesheet" href="assets/built/screen.css%3Fv=f5d2ac8d11.css">
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700,700i%7CDosis:600,700&amp;subset=latin-ext">
         
-    <link rel="canonical" href="../diy-neural-network-part-1.html" />
+    <link rel="canonical" href="diy-neural-network-part-1.html" />
     <meta name="referrer" content="no-referrer-when-downgrade" />
-    <link rel="amphtml" href="amp/index.html" />
+    <link rel="amphtml" href="diy-neural-network-part-1/amp/index.html" />
     
     <meta property="og:site_name" content="sffresch" />
     <meta property="og:type" content="article" />
@@ -88,7 +88,7 @@
     </script>
 
     <meta name="generator" content="Ghost 4.17" />
-    <link rel="alternate" type="application/rss+xml" title="sffresch" href="../rss/index.html" />
+    <link rel="alternate" type="application/rss+xml" title="sffresch" href="rss/index.html" />
     
     <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-KGHY4JLHRR"></script>
@@ -131,18 +131,18 @@ src="https://cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-MML-AM_CHT
         <header class="site-header">
     <div class="navbar">
         <div class="navbar-left">
-            <a class="logo" href="../index.html">
+            <a class="logo" href="index.html">
         <span class="logo-text">sffresch</span>
 </a>        </div>
             <nav class="main-menu hidden-xs hidden-sm hidden-md">
                 <ul class="nav-list u-plain-list">
         <li
             class="menu-item menu-item-whoami">
-            <a class="menu-item-link" href="../whoami/index.html">whoami</a>
+            <a class="menu-item-link" href="whoami/index.html">whoami</a>
         </li>
         <li
             class="menu-item menu-item-projects">
-            <a class="menu-item-link" href="../projects.html">projects</a>
+            <a class="menu-item-link" href="projects.html">projects</a>
         </li>
 </ul>
             </nav>
@@ -172,7 +172,7 @@ src="https://cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-MML-AM_CHT
                             </div>
                                 <figure class="post-media">
         <div class="u-placeholder">
-            <a class="post-image-link" href="../diy-neural-network-part-1.html">
+            <a class="post-image-link" href="diy-neural-network-part-1.html">
             <div class="on-media-title no-select">
                 DIY neural network (part 1)
             </div>
@@ -189,15 +189,15 @@ src="https://cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-MML-AM_CHT
                                 <div class="post-content u-text-format">
                                     <p>This is the first post of a series about creating your very own artificial neural network (ANN) by hand. We are going to start as simple as it can get: Creating a baby neural network that can barely solve problems each of us could easily solve by hand. In each part of this series, we will continue to improve the capabilities of our self-made ANN and try to tackle more challenging problems with it.</p><p><strong>TL;DR</strong>: <a href="https://github.com/frank690/sffresch-code/blob/main/diy-neural-network-part-1/code.ipynb">Take me to the code</a>.</p><h3 id="the-problem">The Problem</h3><p>Consider having three light bulbs. The first two of them (A and B) can be turned either ON (1) or OFF (0) <em>independently</em>. The state of the third light bulb (C) depends on the first two (A and B). Try to figure out how the underlying systematic works by clicking on A and/or B as much as you like.</p><!--kg-card-begin: html--><div class="lightbulbs">
     <div class="lightbulb">
-        <img id="lightbulb_A" class="input_lightbulb" state="off" onclick="input_lightbulb_clicked(this.id)" src="../content/images/2021/08/light-bulb-off.png" alt="A"></img>
+        <img id="lightbulb_A" class="input_lightbulb" state="off" onclick="input_lightbulb_clicked(this.id)" src="content/images/2021/08/light-bulb-off.png" alt="A"></img>
     	<span class="caption">A</span>
 	</div>
 	<div class="lightbulb">
-        <img id="lightbulb_B" class="input_lightbulb" state="off" onclick="input_lightbulb_clicked(this.id)" src="../content/images/2021/08/light-bulb-off.png" alt="B"></img>
+        <img id="lightbulb_B" class="input_lightbulb" state="off" onclick="input_lightbulb_clicked(this.id)" src="content/images/2021/08/light-bulb-off.png" alt="B"></img>
     	<span class="caption">B</span>
 	</div>
 	<div class="lightbulb">
-        <img id="target_lightbulb" src="../content/images/2021/08/light-bulb-on.png" alt="C"></img>
+        <img id="target_lightbulb" src="content/images/2021/08/light-bulb-on.png" alt="C"></img>
     	<span class="caption">C</span>
 	</div>
 </div><!--kg-card-end: html--><p>The presented problem is known as the <a href="https://en.wikipedia.org/wiki/XNOR_gate">XNOR gate</a>. If A and B are both either 0 or 1, C will be 1. Otherwise, C will be 0. The corresponding input data (the states of A and B) will be stored in the variable X and the output data (the state of C) as y.</p><h3 id="generating-more-data">Generating more data</h3><p><s>Unfortunately,</s> Luckily, the data we got is a bit noisy on the input side and we do not get a clean 0 or 1 for the states of A and B, but rather a value around (!) 0 or 1. Since it is very unlikely that two samples are going to be the very same, we can now easily draw way more data than the initial four possible states (of A and B).</p><pre><code class="language-python">import numpy as np
@@ -217,7 +217,7 @@ def generate_data(N: int) -&gt; Tuple[np.ndarray, np.ndarray]:
     y = np.reshape(y, (len(y), 1))
 
     return X, y</code></pre><p>Using the generate_data function gets us some nice training and testing sets to feed to our ANN.</p><pre><code class="language-python">X_train, y_train = generate_data(N=100)
-X_test, y_test = generate_data(N=50)</code></pre><figure class="kg-card kg-image-card"><img src="../content/images/2022/01/xnor_problem-4.svg" class="kg-image" alt loading="lazy"></figure><h3 id="initialize-weights-and-biases">Initialize weights and biases</h3><p>Since we now know what our data looks like, let us define a simple ANN with one layer each for the input, hidden, and output layers. The input layer will have two neurons (corresponding to the input data A and B) and the output layer will have one neuron (C). We choose the number of hidden neurons to be 3.</p><p>Side note: <br>There is no general answer to the question of choosing how many hidden layers and neurons per (hidden) layer one should use. In my personal experience, this highly depends on multiple factors. To name just a few, one is of course the complexity of the problem that the ANN should try to solve. Another one is the computing time one can spend and the capabilities of the machine that trains the ANN. Generally speaking, one should stick with <a href="https://en.wikipedia.org/wiki/Occam's_razor">Occam's razor</a>: If you have two similarly performing models, choose the simpler one.</p><pre><code class="language-python">weights = dict()
+X_test, y_test = generate_data(N=50)</code></pre><figure class="kg-card kg-image-card"><img src="content/images/2022/01/xnor_problem-4.svg" class="kg-image" alt loading="lazy"></figure><h3 id="initialize-weights-and-biases">Initialize weights and biases</h3><p>Since we now know what our data looks like, let us define a simple ANN with one layer each for the input, hidden, and output layers. The input layer will have two neurons (corresponding to the input data A and B) and the output layer will have one neuron (C). We choose the number of hidden neurons to be 3.</p><p>Side note: <br>There is no general answer to the question of choosing how many hidden layers and neurons per (hidden) layer one should use. In my personal experience, this highly depends on multiple factors. To name just a few, one is of course the complexity of the problem that the ANN should try to solve. Another one is the computing time one can spend and the capabilities of the machine that trains the ANN. Generally speaking, one should stick with <a href="https://en.wikipedia.org/wiki/Occam's_razor">Occam's razor</a>: If you have two similarly performing models, choose the simpler one.</p><pre><code class="language-python">weights = dict()
 biases = dict()
 
 weights[1] = 2 * np.random.random((2,3)) - 1
@@ -339,15 +339,15 @@ Loss (999): 0.08227351128655165</code></pre><h3 id="predicting">Predicting</h3><
     z[2] = a[1] @ w[2] + b[2]
     a[2] = sigmoid(z[2])
     
-    return a[2]</code></pre><h3 id="results">Results</h3><p>Looking at the course of the loss, we can see that our ANN was able to fit the given data in such a way, that the resulting loss (for the training data) decreased significantly. Plotting the testing dataset together with the decision boundaries, one can see that our ANN successfully learned to classify data of the XNOR problem (nearly always) correctly. </p><figure class="kg-card kg-image-card"><img src="../content/images/2022/01/xnor_decision_boundaries-2.svg" class="kg-image" alt loading="lazy" width="1920" height="1440"></figure><h3 id="what-is-next">What is next?</h3><p>Now having a baby ANN at our fingertips, there are plenty of things to implement and improve to solve more challenging problems. This includes introducing <a href="https://en.wikipedia.org/wiki/Stochastic_gradient_descent">stochastic gradient descent</a>, different kinds of regularization methods, <a href="https://golden.com/wiki/Nesterov_momentum">Nesterov momentum</a>, <a href="https://arxiv.org/abs/1502.01852">more sophisticated weight + bias initialization</a>, <a href="https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html">more loss functions</a>, <a href="https://ml-cheatsheet.readthedocs.io/en/latest/activation_functions.html">more activation functions</a>, etc. But besides the mathematical perspective, there is also a lot of room for improving the code quality.</p><h3 id="acronyms">Acronyms</h3><p>ANN - Artificial Neural Network<br></p>
+    return a[2]</code></pre><h3 id="results">Results</h3><p>Looking at the course of the loss, we can see that our ANN was able to fit the given data in such a way, that the resulting loss (for the training data) decreased significantly. Plotting the testing dataset together with the decision boundaries, one can see that our ANN successfully learned to classify data of the XNOR problem (nearly always) correctly. </p><figure class="kg-card kg-image-card"><img src="content/images/2022/01/xnor_decision_boundaries-2.svg" class="kg-image" alt loading="lazy" width="1920" height="1440"></figure><h3 id="what-is-next">What is next?</h3><p>Now having a baby ANN at our fingertips, there are plenty of things to implement and improve to solve more challenging problems. This includes introducing <a href="https://en.wikipedia.org/wiki/Stochastic_gradient_descent">stochastic gradient descent</a>, different kinds of regularization methods, <a href="https://golden.com/wiki/Nesterov_momentum">Nesterov momentum</a>, <a href="https://arxiv.org/abs/1502.01852">more sophisticated weight + bias initialization</a>, <a href="https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html">more loss functions</a>, <a href="https://ml-cheatsheet.readthedocs.io/en/latest/activation_functions.html">more activation functions</a>, etc. But besides the mathematical perspective, there is also a lot of room for improving the code quality.</p><h3 id="acronyms">Acronyms</h3><p>ANN - Artificial Neural Network<br></p>
                                 </div>
                                     <h2 class="post-tags-header">Tags</h2>
     <div class="post-tags">
-            <a class="post-tag" id="ANN" href="../tag/ann/index.html" style="background-color: #8e0101;">ANN</a>
-            <a class="post-tag" id="data-science" href="../tag/data-science/index.html" style="background-color: #366356;">data-science</a>
-            <a class="post-tag" id="DIY" href="../tag/diy/index.html" style="background-color: #a87d34;">DIY</a>
-            <a class="post-tag" id="neural-network" href="../tag/neural-network/index.html" style="background-color: #600094;">neural-network</a>
-            <a class="post-tag" id="python" href="../tag/python/index.html" style="background-color: #026600;">python</a>
+            <a class="post-tag" id="ANN" href="tag/ann/index.html" style="background-color: #8e0101;">ANN</a>
+            <a class="post-tag" id="data-science" href="tag/data-science/index.html" style="background-color: #366356;">data-science</a>
+            <a class="post-tag" id="DIY" href="tag/diy/index.html" style="background-color: #a87d34;">DIY</a>
+            <a class="post-tag" id="neural-network" href="tag/neural-network/index.html" style="background-color: #600094;">neural-network</a>
+            <a class="post-tag" id="python" href="tag/python/index.html" style="background-color: #026600;">python</a>
     </div>
                             </div>
                         </article>
@@ -384,11 +384,11 @@ Loss (999): 0.08227351128655165</code></pre><h3 id="predicting">Predicting</h3><
         <ul class="nav-list u-plain-list">
         <li
             class="menu-item menu-item-whoami">
-            <a class="menu-item-link" href="../whoami/index.html">whoami</a>
+            <a class="menu-item-link" href="whoami/index.html">whoami</a>
         </li>
         <li
             class="menu-item menu-item-projects">
-            <a class="menu-item-link" href="../projects.html">projects</a>
+            <a class="menu-item-link" href="projects.html">projects</a>
         </li>
 </ul>
     </div>
@@ -401,23 +401,23 @@ Loss (999): 0.08227351128655165</code></pre><h3 id="predicting">Predicting</h3><
 </div>    <div class="widget widget-tags">
     <h4 class="widget-title">Tags</h4>
         <div class="tag-feed">
-                <a class="post-tag" id="ANN" href="../tag/ann/index.html" style="background-color: #8e0101;">ANN</a>
-                <a class="post-tag" id="DIY" href="../tag/diy/index.html" style="background-color: #a87d34;">DIY</a>
-                <a class="post-tag" id="classification" href="../tag/classification/index.html" style="background-color: #517510;">classification</a>
-                <a class="post-tag" id="data-science" href="../tag/data-science/index.html" style="background-color: #366356;">data-science</a>
-                <a class="post-tag" id="log-loss" href="../tag/log-loss/index.html" style="background-color: #ff2424;">log-loss</a>
-                <a class="post-tag" id="machine-learning" href="../tag/machine-learning/index.html" style="background-color: #001999;">machine-learning</a>
-                <a class="post-tag" id="neural-network" href="../tag/neural-network/index.html" style="background-color: #600094;">neural-network</a>
-                <a class="post-tag" id="python" href="../tag/python/index.html" style="background-color: #026600;">python</a>
-                <a class="post-tag" id="softmax" href="../tag/softmax/index.html" style="background-color: #1c226d;">softmax</a>
-                <a class="post-tag" id="theory" href="../tag/theory/index.html" style="background-color: #bf7e0d;">theory</a>
+                <a class="post-tag" id="ANN" href="tag/ann/index.html" style="background-color: #8e0101;">ANN</a>
+                <a class="post-tag" id="DIY" href="tag/diy/index.html" style="background-color: #a87d34;">DIY</a>
+                <a class="post-tag" id="classification" href="tag/classification/index.html" style="background-color: #517510;">classification</a>
+                <a class="post-tag" id="data-science" href="tag/data-science/index.html" style="background-color: #366356;">data-science</a>
+                <a class="post-tag" id="log-loss" href="tag/log-loss/index.html" style="background-color: #ff2424;">log-loss</a>
+                <a class="post-tag" id="machine-learning" href="tag/machine-learning/index.html" style="background-color: #001999;">machine-learning</a>
+                <a class="post-tag" id="neural-network" href="tag/neural-network/index.html" style="background-color: #600094;">neural-network</a>
+                <a class="post-tag" id="python" href="tag/python/index.html" style="background-color: #026600;">python</a>
+                <a class="post-tag" id="softmax" href="tag/softmax/index.html" style="background-color: #1c226d;">softmax</a>
+                <a class="post-tag" id="theory" href="tag/theory/index.html" style="background-color: #bf7e0d;">theory</a>
         </div>
 </div></aside></div>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"
         integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
         crossorigin="anonymous">
         </script>
-    <script src="../assets/built/main.min.js%3Fv=f5d2ac8d11"></script>
+    <script src="assets/built/main.min.js%3Fv=f5d2ac8d11"></script>
 
     <div id="fb-root"></div>
 <script async defer crossorigin="anonymous"

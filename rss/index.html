@@ -1,4 +1,124 @@
-<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:media="http://search.yahoo.com/mrss/"><channel><title><![CDATA[sffresch]]></title><description><![CDATA[a blog about my projects]]></description><link>http://frank690.github.io/</link><image><url>http://frank690.github.io/favicon.png</url><title>sffresch</title><link>http://frank690.github.io/</link></image><generator>Ghost 4.17</generator><lastBuildDate>Sat, 14 May 2022 19:17:56 GMT</lastBuildDate><atom:link href="http://frank690.github.io/rss/" rel="self" type="application/rss+xml"/><ttl>60</ttl><item><title><![CDATA[Differentiate all the things]]></title><description><![CDATA[In this post, I am going to show you how to compute and implement the combination of the derivative of the softmax and the log-loss functions to run your gradient descent algorithm.]]></description><link>http://frank690.github.io/differentiate-all-the-things/</link><guid isPermaLink="false">6270d0c70a8e1a80c9eec4a4</guid><category><![CDATA[ANN]]></category><category><![CDATA[theory]]></category><category><![CDATA[data-science]]></category><category><![CDATA[DIY]]></category><category><![CDATA[softmax]]></category><category><![CDATA[log-loss]]></category><category><![CDATA[classification]]></category><dc:creator><![CDATA[Frank Eschner]]></dc:creator><pubDate>Tue, 03 May 2022 07:10:46 GMT</pubDate><media:content url="https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDJ8fGNhdHMlMjBhbmQlMjBkb2dzfGVufDB8fHx8MTY1MTU2MjAyMA&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" medium="image"/><content:encoded><![CDATA[<img src="https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDJ8fGNhdHMlMjBhbmQlMjBkb2dzfGVufDB8fHx8MTY1MTU2MjAyMA&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" alt="Differentiate all the things"><p>In this post, I am going to show you how to compute and implement the combination of the derivative of the <a href="https://en.wikipedia.org/wiki/Softmax_function">softmax</a> and the <a href="https://en.wikipedia.org/wiki/Cross_entropy#Cross-entropy_loss_function_and_logistic_regression">log-loss</a> functions to run your <a href="https://en.wikipedia.org/wiki/Gradient_descent">gradient descent</a> algorithm.</p><p><strong>TL;DR</strong>: <a href="https://github.com/frank690/sffresch-code/blob/main/differentiate-all-the-things/code.ipynb">This is the code</a> and these are the derivatives. $ \frac{\delta L}{\delta w_{y}} = &#xA0;- X_{n}^{T} * (1 - S_{y}), \frac{\delta L}{\delta w_{j}} = X_{n}^{T} * S_{j} $</p><p>Let us assume that you want to create your neural network from scratch and you have decided upon using it for <a href="https://en.wikipedia.org/wiki/Multiclass_classification">multiclass classification</a> (MCC). There is a good chance, that you will choose the softmax in combination with the log-loss to do the job. Now to update the weights of your network accordingly, you need to know the solution to the differentiation of the whole thing (with respect to (wrt) the weights that you want to optimize).</p><p>$$ \frac{\delta L}{\delta w}=-\frac{1}{N}\sum_{n=1}^{N}log(\frac{e^{X_{n}w_{y}}}{\sum_{c=1}^{C}e^{X_{n}w_{c}}})\frac{\delta}{\delta w} $$</p><p>I highly encourage you to grab some pen and paper and try to come up with the derivatives yourself. In case you are stuck, just keep on reading until you know how to continue. To avoid confusion from the get-go, let us define what each term of the differentiation means and also what dimensions it has.</p><!--kg-card-begin: html--><table>
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:media="http://search.yahoo.com/mrss/"><channel><title><![CDATA[sffresch]]></title><description><![CDATA[a blog about my projects]]></description><link>http://frank690.github.io/</link><image><url>http://frank690.github.io/favicon.png</url><title>sffresch</title><link>http://frank690.github.io/</link></image><generator>Ghost 4.17</generator><lastBuildDate>Sun, 15 May 2022 21:20:44 GMT</lastBuildDate><atom:link href="http://frank690.github.io/rss/" rel="self" type="application/rss+xml"/><ttl>60</ttl><item><title><![CDATA[DIY neural network (part 2)]]></title><description><![CDATA[This post is all about restructuring the code of our previously made neural network so we can use it in a way more elegant way, much like frameworks like Tensorflow or PyTorch. ]]></description><link>http://frank690.github.io/diy-neural-network-part-2/</link><guid isPermaLink="false">6276236f07f3ac04aa63e439</guid><category><![CDATA[ANN]]></category><category><![CDATA[DIY]]></category><category><![CDATA[neural-network]]></category><category><![CDATA[python]]></category><dc:creator><![CDATA[Frank Eschner]]></dc:creator><pubDate>Thu, 12 May 2022 11:02:59 GMT</pubDate><media:content url="https://images.unsplash.com/photo-1444530495635-029990f82ce8?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDE0fHxzZWVkbGluZ3xlbnwwfHx8fDE2NTIzNTM0NTY&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" medium="image"/><content:encoded><![CDATA[<img src="https://images.unsplash.com/photo-1444530495635-029990f82ce8?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDE0fHxzZWVkbGluZ3xlbnwwfHx8fDE2NTIzNTM0NTY&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" alt="DIY neural network (part 2)"><p>This post is all about restructuring the <a href="https://github.com/frank690/sffresch-code/blob/main/diy-neural-network-part-1/code.ipynb">code</a> of our <a href="../diy-neural-network-part-1">previously made neural network</a> so we can use it in a way more elegant way, much like frameworks like <a href="https://www.tensorflow.org/">Tensorflow</a> or <a href="https://pytorch.org/">PyTorch</a>. For this purpose, we will construct a base class and consistently add more features and complexity to it within this and the following parts of the series.</p><p><strong>TL;DR</strong>: <a href="https://github.com/frank690/sffresch-code/blob/main/diy-neural-network-part-2/code.ipynb">Take me to the nice code</a>.</p><h3 id="the-base-class">The base class</h3><p>Artificial neural networks (ANNs) can consist of a variety of differently shaped layers and have various activation and loss functions. Being able to choose from these possibilities, when creating an ANN (programmatically) easily and elegantly, is key. First, we will come up with a class representation for a simple ANN that expects a list of integers as input, which represent the number of neurons in each layer.</p><pre><code class="language-python">class ANN:
+    &quot;&quot;&quot;
+    Class representation of an artificial neural network (ANN).
+    &quot;&quot;&quot;
+    def __init__(self, layers: List[int]):
+        &quot;&quot;&quot;
+        Initialization function to set up the class.
+        :param layers: Number of neurons for each layer that should be set up as List of ints.
+        &quot;&quot;&quot;
+        self.W = dict()  # holding the weight matrices
+        self.b = dict()  # holding the bias values
+        self.z = dict()  # holding the intermediate values
+        self.a = dict()  # holding the activation values
+        
+        self.dW = dict()  # holding the gradient of the weight matrices
+        self.db = dict()  # holding the gradient of the bias values
+        
+        self.layers = layers  # User defined layers
+
+        self._construct()
+        
+    def _construct(self):
+        &quot;&quot;&quot;
+        Construct the internal shape of the ANN.
+        &quot;&quot;&quot;
+        for idx, layer in enumerate(self.layers[:-1]):
+            self.W[idx] = np.random.randn(layer, self.layers[idx+1])
+            self.b[idx] = np.zeros(self.layers[idx+1])</code></pre><p>With the information about the neurons in each layer, the basic weight and bias structure (which will be optimized during the training process) is implemented. For now, the initial weight values are derived from a <a href="https://en.wikipedia.org/wiki/Normal_distribution">normal Gaussian distribution</a> and the bias values are set to plain zeros. Note that during the class initialization, there are four other dictionaries added to the class parameters. These hold information about the derivates of the weights ($dW$) and biases ($db$) but also about some intermediate ($z$) and activation values ($a$).</p><h3 id="the-cost-function">The cost function</h3><p>Depending on what kind of problem you want to solve, a variety of cost functions are applicable. Here we are going to stick with the cross-entropy-loss, that we already introduced in the <a href="../diy-neural-network-part-1/">previous post of this series</a>. We accomplish this by adding the following method to our base class. Note that by providing a boolean true as the gradient parameter, we return the derivative of the loss. At a later point, we will provide a variety of loss functions and (ideally) grant the user the opportunity to implement custom functions, as well.</p><pre><code class="language-python">def loss(self, y: np.ndarray, gradient: bool = False) -&gt; np.ndarray:
+    &quot;&quot;&quot;
+    Compute the cross entropy loss for the given hypothesis (h) in contrast to the true results (y).
+    If the gradient flag is True, the derivative of said loss function will be returned.
+    :param y: True output data.
+    :param gradient: Bool flag to indicate if gradient should be returned.
+    :return: Cost/Loss of the current hypothesis.
+    &quot;&quot;&quot;
+    h = self.a[len(self.layers)-2]  # our prediction / hypothesis
+
+    if gradient:
+    	return -(y // h) + ((1 - y) // (1 - h))
+    return -(1/y.size) * ((y.T @ np.log(h)) + ((1 - y.T) @ np.log(1 - h)))</code></pre><h3 id="the-activation-function">The activation function</h3><p>Just like the cost function, the activation function also highly depends on the problem that one wants to solve. One of the classic approaches is to use the <a href="https://en.wikipedia.org/wiki/Sigmoid_function">Sigmoid function</a>. We add this functionality with the following code snippet. Also here, we are granting the user the opportunity to get the gradient of the activation function by passing the boolean gradient flag, accordingly.</p><pre><code class="language-python">def activation(self, X: np.ndarray, gradient: bool = False) -&gt; np.ndarray:
+    &quot;&quot;&quot;
+    For the activation function we use the sigmoid.
+    It will return 0 for every x &lt;&lt; 0 and 1 for every x &gt;&gt; 0.
+    Return the gradient of the sigmoid if a True gradient flag is given.
+    :param X: data to transform via sigmoid function:
+    :return: transformed data that lies between 0 and 1.
+    &quot;&quot;&quot;
+    sigmoid = 1 / (1 + np.exp(-X))
+    if gradient:
+    	return sigmoid * (1 - sigmoid)
+    return sigmoid</code></pre><h3 id="propagate-forward">Propagate forward</h3><p>Part of training an ANN and also a mandatory part to make predictions is the ability to propagate forward. Since the number of layers is decided upon the class initialization, we have to loop over all given weights and biases and compute the resulting intermediate ($z$) and activation values ($a$). The computed values will then be stored in the already existing dictionaries for said values.</p><pre><code class="language-python">def forward(self, X: np.ndarray):
+    &quot;&quot;&quot;
+    Successively propagate the input data (X) through the ANN and store all
+    intermediate and activation values in their corresponding dictionaries.
+    :param X: Input data to make predictions on.
+    &quot;&quot;&quot;
+    self.a[-1] = X
+    for idx in range(len(self.layers)-1):
+        self.z[idx] = self.a[idx-1] @ self.W[idx] + self.b[idx]
+        self.a[idx] = self.activation(self.z[idx])</code></pre><h3 id="propagate-backward">Propagate backward</h3><p>Once we propagated forward through the whole ANN, our hypothesis (e.g. prediction) is represented by the output of the latest activation value. Next, we compute the loss and work our way backward through the network until we reached (computed) all derivations (gradients) of all our weights and biases. With these derivations ($dW$ and $db$) we head on to update our weights and biases.</p><pre><code class="language-python">def backward(self, y: np.ndarray):
+    &quot;&quot;&quot;
+    Successively propagate the prediction as well as the true output backwards through the ANN.
+    Store the resulting gradients for weights and biases in their corresponding dictionaries.
+    :param y: True output data.
+    &quot;&quot;&quot;
+    da = self.loss(y=y, gradient=True)  # get gradient of last activation value
+
+    for idx in range(len(self.layers)-2, -1, -1):  # loop from the last layer to zero (effectively)
+        dz = da * self.activation(X=self.z[idx], gradient=True)
+        da = dz @ self.W[idx].T  
+
+        self.db[idx] = np.mean(dz, axis=0)  # get gradient of bias. use mean to pay respect to sample size.
+        self.dW[idx] = (self.a[idx-1].T @ dz) / y.size  # get gradient of weights. divide by number of samples.  </code></pre><h3 id="predict">Predict</h3><p>To predict the output, given some data, all we need to do is propagate said data forward through the network and look at the resulting hypothesis (e.g. activation value of the very last layer). Since we are only dealing with binary classification at this point, we apply an (arbitrary) threshold to the resulting predictions. This results in the predictions of our network being absolute (either class 0 or 1) for each provided sample.</p><pre><code class="language-python">def predict(self, X: np.ndarray, threshold: float = 0.5) -&gt; np.ndarray:
+    &quot;&quot;&quot;
+    Predict the output of the given data (X).
+    :param X: Data to make prediction on.
+    :param threshold: Threshold that decides if predicted value belongs to class 0 or 1.
+    :return: Predicted value.
+    &quot;&quot;&quot;
+    self.forward(X)
+    return self.a[len(self.layers)-2] &gt; threshold
+</code></pre><h3 id="update">Update</h3><p>After computing the gradients of our weights ($dW$) and biases ($db$) during backpropagation, we might as well use them now to update said weights and biases. Since we stored the gradients in their own dictionaries (which is a parameter of the class), it is an easy job to call them and to do the updating. In contrast to our previous code, we introduced the learning rate. This is a mere factor that scales the strength of the applied update. Previously, we just set the learning rate to be a fixed 1 (and thus omitted it in the code).</p><pre><code class="language-python">def update(self, learning_rate: float):
+    &quot;&quot;&quot;
+    Update the current weights and biases by multiplying the learning rate with the previously computed gradients.
+    :param learning_rate: The step size of the gradient applied to update the weights and biases (e.g. to learn).
+    &quot;&quot;&quot;
+    for idx in range(len(self.layers)-1):
+        self.W[idx] -= learning_rate * self.dW[idx]
+        self.b[idx] -= learning_rate * self.db[idx]  </code></pre><h3 id="training">Training</h3><p>Now that we have integrated the methods for working our way through the network (forth and back), computing the loss of each sample as well as updating the weights and biases, we can put everything together to implement the training procedure.</p><pre><code class="language-python">def fit(self, X: np.ndarray, y: np.ndarray, learning_rate: float = 1, epochs: int = 1000):
+    &quot;&quot;&quot;
+    Run the training procedure on the given data for the given epochs.
+    This essentially fits the network to the given data.
+    Print current loss value every epoch.
+    :param X: Input data.
+    :param y: True output data.
+    :param learning_rate: The step size of the gradient applied to update the weights and biases (e.g. to learn).
+    :param epochs: Number of training cycles to perform.
+    &quot;&quot;&quot;
+    for epoch in range(epochs):
+        self.forward(X=X)
+        loss = self.loss(y=y)
+        self.backward(y=y)
+        self.update(learning_rate)
+
+        print(f&quot;({epoch+1}/{epochs}): {loss.item()}&quot;)</code></pre><h3 id="accuracy">Accuracy</h3><p>Instead of <em>just</em> refactoring our previous code into a nice and handy class, we might as well add something new to it. Having a metric to know how accurate your (trained) model performs on a given dataset, is quite valuable. So this is what we are going to implement. Accuracy describes the ratio of correctly identified classes to all the classifications it predicted (correct and incorrect ones).</p><pre><code class="language-python">def accuracy(self, X: np.ndarray, y: np.ndarray) -&gt; float:
+    &quot;&quot;&quot;
+    Perform predictions on all the given data (X) and compare these predictions to the ground truth values (y).
+    Afterwards get the ratio of correctly to correctly+incorrectly predicted classes. This is the accuracy.
+    :param X: Input data.
+    :param y: True output data.
+    :return: Accuracy as float value.
+    &quot;&quot;&quot;
+    return np.sum(self.predict(X) == y) / y.size</code></pre><h3 id="testing">Testing</h3><p>Using the same XNOR data we had in the <a href="../diy-neural-network-part-1/">previous post of this series</a>, we can confirm that we see near-identical results. Also, our accuracy on both, training and testing data confirms that we fitted our model (ANN) successfully to the generated data.</p><pre><code class="language-python">model = ANN([2,3,1])         # initialize our ANN model
+model.fit(X_train, y_train)  # fit it to our training data</code></pre><pre><code class="language-shell">(1/1000): 0.8624013698343836
+(2/1000): 0.7502329385727288
+(3/1000): 0.7085321817003911
+...
+(998/1000): 0.09573808006389115
+(999/1000): 0.0956405468534334
+(1000/1000): 0.0955433438225078</code></pre><pre><code class="language-python">model.accuracy(X_train, y_train)  # 0.975
+model.accuracy(X_test, y_test)    # 0.955</code></pre><h3 id="summary">Summary</h3><p>And that&apos;s it! We successfully refactored our previous code into a single class that we can now use to easily create ANNs with arbitrary sizes (layers and number of neurons). Admittingly, there is still plenty of work to do from this point on. In the next posts of this series, we will add new capabilities to our ANN as well as continually improve its code structure, so that it always stays convenient for us to use. Click <a href="https://github.com/frank690/sffresch-code/blob/main/diy-neural-network-part-2/code.ipynb">here</a> to see the complete code of this post in a jupyter notebook.</p><p>Thank you for reading!</p>]]></content:encoded></item><item><title><![CDATA[Differentiate all the things]]></title><description><![CDATA[In this post, I am going to show you how to compute and implement the combination of the derivative of the softmax and the log-loss functions to run your gradient descent algorithm.]]></description><link>http://frank690.github.io/differentiate-all-the-things/</link><guid isPermaLink="false">6270d0c70a8e1a80c9eec4a4</guid><category><![CDATA[ANN]]></category><category><![CDATA[theory]]></category><category><![CDATA[data-science]]></category><category><![CDATA[DIY]]></category><category><![CDATA[softmax]]></category><category><![CDATA[log-loss]]></category><category><![CDATA[classification]]></category><dc:creator><![CDATA[Frank Eschner]]></dc:creator><pubDate>Tue, 03 May 2022 07:10:46 GMT</pubDate><media:content url="https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDJ8fGNhdHMlMjBhbmQlMjBkb2dzfGVufDB8fHx8MTY1MTU2MjAyMA&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" medium="image"/><content:encoded><![CDATA[<img src="https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDJ8fGNhdHMlMjBhbmQlMjBkb2dzfGVufDB8fHx8MTY1MTU2MjAyMA&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" alt="Differentiate all the things"><p>In this post, I am going to show you how to compute and implement the combination of the derivative of the <a href="https://en.wikipedia.org/wiki/Softmax_function">softmax</a> and the <a href="https://en.wikipedia.org/wiki/Cross_entropy#Cross-entropy_loss_function_and_logistic_regression">log-loss</a> functions to run your <a href="https://en.wikipedia.org/wiki/Gradient_descent">gradient descent</a> algorithm.</p><p><strong>TL;DR</strong>: <a href="https://github.com/frank690/sffresch-code/blob/main/differentiate-all-the-things/code.ipynb">This is the code</a> and these are the derivatives. $ \frac{\delta L}{\delta w_{y}} = &#xA0;- X_{n}^{T} * (1 - S_{y}), \frac{\delta L}{\delta w_{j}} = X_{n}^{T} * S_{j} $</p><h3 id="preface">Preface</h3><p>Let us assume that you want to create your neural network from scratch and you have decided upon using it for <a href="https://en.wikipedia.org/wiki/Multiclass_classification">multiclass classification</a> (MCC). There is a good chance, that you will choose the softmax in combination with the log-loss to do the job. Now to update the weights of your network accordingly, you need to know the solution to the differentiation of the whole thing (with respect to (wrt) the weights that you want to optimize).</p><p>$$ \frac{\delta L}{\delta w}=-\frac{1}{N}\sum_{n=1}^{N}log(\frac{e^{X_{n}w_{y}}}{\sum_{c=1}^{C}e^{X_{n}w_{c}}})\frac{\delta}{\delta w} $$</p><p>I highly encourage you to grab some pen and paper and try to come up with the derivatives yourself. In case you are stuck, just keep on reading until you know how to continue. To avoid confusion from the get-go, let us define what each term of the differentiation means and also what dimensions it has.</p><!--kg-card-begin: html--><table>
     <tr>
         <td><b>Symbol</b></td>
         <td style="white-space: nowrap"><b>Meaning</b></td>
