@@ -16,7 +16,7 @@
     <meta property="og:url" content="http://frank690.github.io/diy-neural-network-part-2/" />
     <meta property="og:image" content="https://images.unsplash.com/photo-1444530495635-029990f82ce8?crop&#x3D;entropy&amp;cs&#x3D;tinysrgb&amp;fit&#x3D;max&amp;fm&#x3D;jpg&amp;ixid&#x3D;MnwxMTc3M3wwfDF8c2VhcmNofDE0fHxzZWVkbGluZ3xlbnwwfHx8fDE2NTIzNTM0NTY&amp;ixlib&#x3D;rb-1.2.1&amp;q&#x3D;80&amp;w&#x3D;2000" />
     <meta property="article:published_time" content="2022-05-12T11:02:59.000Z" />
-    <meta property="article:modified_time" content="2022-05-17T16:10:33.000Z" />
+    <meta property="article:modified_time" content="2022-05-17T16:14:40.000Z" />
     <meta property="article:tag" content="ANN" />
     <meta property="article:tag" content="DIY" />
     <meta property="article:tag" content="neural-network" />
@@ -66,7 +66,7 @@
     "headline": "DIY neural network (part 2)",
     "url": "http://frank690.github.io/diy-neural-network-part-2/",
     "datePublished": "2022-05-12T11:02:59.000Z",
-    "dateModified": "2022-05-17T16:10:33.000Z",
+    "dateModified": "2022-05-17T16:14:40.000Z",
     "image": {
         "@type": "ImageObject",
         "url": "https://images.unsplash.com/photo-1444530495635-029990f82ce8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxMTc3M3wwfDF8c2VhcmNofDE0fHxzZWVkbGluZ3xlbnwwfHx8fDE2NTIzNTM0NTY&ixlib=rb-1.2.1&q=80&w=2000",
@@ -763,7 +763,7 @@
     """
     for idx in range(len(self.layers)-1):
         self.W[idx] -= learning_rate * self.dW[idx]
-        self.b[idx] -= learning_rate * self.db[idx]  </code></pre><h3 id="training">Training</h3><p>Now that we have integrated the methods for working our way through the network (forth and back), computing the loss of each sample as well as updating the weights and biases, we can put everything together to implement the training procedure. Furthermore, we collect the loss of each epoch and return it as a list. This way, we can plot a nice learning curve in the end.</p><pre><code>def fit(self, X: np.ndarray, y: np.ndarray, learning_rate: float = 1, epochs: int = 1000) -&gt; List:
+        self.b[idx] -= learning_rate * self.db[idx]  </code></pre><h3 id="training">Training</h3><p>Now that we have integrated the methods for working our way through the network (forth and back), computing the loss of each sample as well as updating the weights and biases, we can put everything together to implement the training procedure. Furthermore, we collect the loss of each epoch and return it as a list. This way, we can plot a nice learning curve in the end.</p><pre><code class="language-python">def fit(self, X: np.ndarray, y: np.ndarray, learning_rate: float = 1, epochs: int = 1000) -&gt; List:
     """
     Run the training procedure on the given data for the given epochs.
     This essentially fits the network to the given data.
