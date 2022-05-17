@@ -16,7 +16,7 @@
     <meta property="og:url" content="http://frank690.github.io/diy-neural-network-part-2/" />
     <meta property="og:image" content="https://images.unsplash.com/photo-1444530495635-029990f82ce8?crop&#x3D;entropy&amp;cs&#x3D;tinysrgb&amp;fit&#x3D;max&amp;fm&#x3D;jpg&amp;ixid&#x3D;MnwxMTc3M3wwfDF8c2VhcmNofDE0fHxzZWVkbGluZ3xlbnwwfHx8fDE2NTIzNTM0NTY&amp;ixlib&#x3D;rb-1.2.1&amp;q&#x3D;80&amp;w&#x3D;2000" />
     <meta property="article:published_time" content="2022-05-12T11:02:59.000Z" />
-    <meta property="article:modified_time" content="2022-05-15T21:17:29.000Z" />
+    <meta property="article:modified_time" content="2022-05-17T16:10:33.000Z" />
     <meta property="article:tag" content="ANN" />
     <meta property="article:tag" content="DIY" />
     <meta property="article:tag" content="neural-network" />
@@ -66,7 +66,7 @@
     "headline": "DIY neural network (part 2)",
     "url": "http://frank690.github.io/diy-neural-network-part-2/",
     "datePublished": "2022-05-12T11:02:59.000Z",
-    "dateModified": "2022-05-15T21:17:29.000Z",
+    "dateModified": "2022-05-17T16:10:33.000Z",
     "image": {
         "@type": "ImageObject",
         "url": "https://images.unsplash.com/photo-1444530495635-029990f82ce8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxMTc3M3wwfDF8c2VhcmNofDE0fHxzZWVkbGluZ3xlbnwwfHx8fDE2NTIzNTM0NTY&ixlib=rb-1.2.1&q=80&w=2000",
@@ -763,7 +763,7 @@
     """
     for idx in range(len(self.layers)-1):
         self.W[idx] -= learning_rate * self.dW[idx]
-        self.b[idx] -= learning_rate * self.db[idx]  </code></pre><h3 id="training">Training</h3><p>Now that we have integrated the methods for working our way through the network (forth and back), computing the loss of each sample as well as updating the weights and biases, we can put everything together to implement the training procedure.</p><pre><code class="language-python">def fit(self, X: np.ndarray, y: np.ndarray, learning_rate: float = 1, epochs: int = 1000):
+        self.b[idx] -= learning_rate * self.db[idx]  </code></pre><h3 id="training">Training</h3><p>Now that we have integrated the methods for working our way through the network (forth and back), computing the loss of each sample as well as updating the weights and biases, we can put everything together to implement the training procedure. Furthermore, we collect the loss of each epoch and return it as a list. This way, we can plot a nice learning curve in the end.</p><pre><code>def fit(self, X: np.ndarray, y: np.ndarray, learning_rate: float = 1, epochs: int = 1000) -&gt; List:
     """
     Run the training procedure on the given data for the given epochs.
     This essentially fits the network to the given data.
@@ -772,14 +772,21 @@
     :param y: True output data.
     :param learning_rate: The step size of the gradient applied to update the weights and biases (e.g. to learn).
     :param epochs: Number of training cycles to perform.
+    :return: List of loss for each epoch.
     """
+    loss_history = []
+    
     for epoch in range(epochs):
         self.forward(X=X)
         loss = self.loss(y=y)
         self.backward(y=y)
         self.update(learning_rate)
-
-        print(f"({epoch+1}/{epochs}): {loss.item()}")</code></pre><h3 id="accuracy">Accuracy</h3><p>Instead of <em>just</em> refactoring our previous code into a nice and handy class, we might as well add something new to it. Having a metric to know how accurate your (trained) model performs on a given dataset, is quite valuable. So this is what we are going to implement. Accuracy describes the ratio of correctly identified classes to all the classifications it predicted (correct and incorrect ones).</p><pre><code class="language-python">def accuracy(self, X: np.ndarray, y: np.ndarray) -&gt; float:
+        
+        loss_history.append(loss.item())
+        print(f"({epoch+1}/{epochs}): {loss.item()}")
+        
+    return loss_history
+</code></pre><h3 id="accuracy">Accuracy</h3><p>Instead of <em>just</em> refactoring our previous code into a nice and handy class, we might as well add something new to it. Having a metric to know how accurate your (trained) model performs on a given dataset, is quite valuable. So this is what we are going to implement. Accuracy describes the ratio of correctly identified classes to all the classifications it predicted (correct and incorrect ones).</p><pre><code class="language-python">def accuracy(self, X: np.ndarray, y: np.ndarray) -&gt; float:
     """
     Perform predictions on all the given data (X) and compare these predictions to the ground truth values (y).
     Afterwards get the ratio of correctly to correctly+incorrectly predicted classes. This is the accuracy.
@@ -787,15 +794,15 @@
     :param y: True output data.
     :return: Accuracy as float value.
     """
-    return np.sum(self.predict(X) == y) / y.size</code></pre><h3 id="testing">Testing</h3><p>Using the same XNOR data we had in the <a href="http://frank690.github.io/diy-neural-network-part-2/diy-neural-network-part-1/">previous post of this series</a>, we can confirm that we see near-identical results. Also, our accuracy on both, training and testing data confirms that we fitted our model (ANN) successfully to the generated data.</p><pre><code class="language-python">model = ANN([2,3,1])         # initialize our ANN model
-model.fit(X_train, y_train)  # fit it to our training data</code></pre><pre><code class="language-shell">(1/1000): 0.8624013698343836
+    return np.sum(self.predict(X) == y) / y.size</code></pre><h3 id="testing">Testing</h3><p>Using the same XNOR data we had in the <a href="http://frank690.github.io/diy-neural-network-part-2/diy-neural-network-part-1/">previous post of this series</a>, we can confirm that we see near-identical results. Also, our accuracy on both, training and testing data confirms that we fitted our model (ANN) successfully to the generated data.</p><pre><code class="language-python">model = ANN([2,3,1])                # initialize our ANN model
+loss = model.fit(X_train, y_train)  # fit it to our training data</code></pre><pre><code class="language-shell">(1/1000): 0.8624013698343836
 (2/1000): 0.7502329385727288
 (3/1000): 0.7085321817003911
 ...
 (998/1000): 0.09573808006389115
 (999/1000): 0.0956405468534334
 (1000/1000): 0.0955433438225078</code></pre><pre><code class="language-python">model.accuracy(X_train, y_train)  # 0.975
-model.accuracy(X_test, y_test)    # 0.955</code></pre><h3 id="summary">Summary</h3><p>And that's it! We successfully refactored our previous code into a single class that we can now use to easily create ANNs with arbitrary sizes (layers and number of neurons). Admittingly, there is still plenty of work to do from this point on. In the next posts of this series, we will add new capabilities to our ANN as well as continually improve its code structure, so that it always stays convenient for us to use. Click <a href="https://github.com/frank690/sffresch-code/blob/main/diy-neural-network-part-2/code.ipynb">here</a> to see the complete code of this post in a jupyter notebook.</p><p>Thank you for reading!</p>
+model.accuracy(X_test, y_test)    # 0.955</code></pre><h3 id="training-learning-curve">(Training) Learning curve</h3><p>This is just the visualization of the list of loss values that we got from training the model. </p><figure class="kg-card kg-image-card"></figure><h3 id="summary">Summary</h3><p>And that's it! We successfully refactored our previous code into a single class that we can now use to easily create ANNs with arbitrary sizes (layers and number of neurons). Admittingly, there is still plenty of work to do from this point on. In the next posts of this series, we will add new capabilities to our ANN as well as continually improve its code structure, so that it always stays convenient for us to use. Click <a href="https://github.com/frank690/sffresch-code/blob/main/diy-neural-network-part-2/code.ipynb">here</a> to see the complete code of this post in a jupyter notebook.</p><p>Thank you for reading!</p>
 
             </section>
 
