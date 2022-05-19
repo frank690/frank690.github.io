@@ -4,19 +4,19 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
 
-    <title>DIY neural network (part 1)</title>
+    <title>DIY Neural network: Making a prototype</title>
 
     <link rel="canonical" href="../../diy-neural-network-part-1.html" />
     <meta name="referrer" content="no-referrer-when-downgrade" />
     
     <meta property="og:site_name" content="sffresch" />
     <meta property="og:type" content="article" />
-    <meta property="og:title" content="DIY neural network (part 1)" />
+    <meta property="og:title" content="DIY Neural network: Making a prototype" />
     <meta property="og:description" content="We are going to start as simple as it can get: Creating a baby neural network that can barely solve problems each of us could easily solve by hand." />
     <meta property="og:url" content="http://frank690.github.io/diy-neural-network-part-1/" />
     <meta property="og:image" content="https://images.unsplash.com/photo-1505235687559-28b5f54645b7?crop&#x3D;entropy&amp;cs&#x3D;tinysrgb&amp;fit&#x3D;max&amp;fm&#x3D;jpg&amp;ixid&#x3D;MnwxMTc3M3wwfDF8c2VhcmNofDF8fHNlZWRsaW5nfGVufDB8fHx8MTY0MTIzODkzNg&amp;ixlib&#x3D;rb-1.2.1&amp;q&#x3D;80&amp;w&#x3D;2000" />
     <meta property="article:published_time" content="2021-08-17T18:28:45.000Z" />
-    <meta property="article:modified_time" content="2022-05-14T17:16:05.000Z" />
+    <meta property="article:modified_time" content="2022-05-19T07:07:51.000Z" />
     <meta property="article:tag" content="ANN" />
     <meta property="article:tag" content="data-science" />
     <meta property="article:tag" content="DIY" />
@@ -24,7 +24,7 @@
     <meta property="article:tag" content="python" />
     
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="DIY neural network (part 1)" />
+    <meta name="twitter:title" content="DIY Neural network: Making a prototype" />
     <meta name="twitter:description" content="We are going to start as simple as it can get: Creating a baby neural network that can barely solve problems each of us could easily solve by hand." />
     <meta name="twitter:url" content="http://frank690.github.io/diy-neural-network-part-1/" />
     <meta name="twitter:image" content="https://images.unsplash.com/photo-1505235687559-28b5f54645b7?crop&#x3D;entropy&amp;cs&#x3D;tinysrgb&amp;fit&#x3D;max&amp;fm&#x3D;jpg&amp;ixid&#x3D;MnwxMTc3M3wwfDF8c2VhcmNofDF8fHNlZWRsaW5nfGVufDB8fHx8MTY0MTIzODkzNg&amp;ixlib&#x3D;rb-1.2.1&amp;q&#x3D;80&amp;w&#x3D;2000" />
@@ -64,10 +64,10 @@
             "https://sffresch.de"
         ]
     },
-    "headline": "DIY neural network (part 1)",
+    "headline": "DIY Neural network: Making a prototype",
     "url": "http://frank690.github.io/diy-neural-network-part-1/",
     "datePublished": "2021-08-17T18:28:45.000Z",
-    "dateModified": "2022-05-14T17:16:05.000Z",
+    "dateModified": "2022-05-19T07:07:51.000Z",
     "image": {
         "@type": "ImageObject",
         "url": "https://images.unsplash.com/photo-1505235687559-28b5f54645b7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxMTc3M3wwfDF8c2VhcmNofDF8fHNlZWRsaW5nfGVufDB8fHx8MTY0MTIzODkzNg&ixlib=rb-1.2.1&q=80&w=2000",
@@ -665,7 +665,7 @@
         <article class="post">
 
             <header class="post-header">
-                <h1 class="post-title">DIY neural network (part 1)</h1>
+                <h1 class="post-title">DIY Neural network: Making a prototype</h1>
                 <section class="post-meta">
                     Frank Eschner -
                     <time class="post-date" datetime="2021-08-17">17 Aug 2021</time>
@@ -676,7 +676,7 @@
             </figure>
             <section class="post-content">
 
-                <p>This is the first post of a series about creating your very own artificial neural network (ANN) by hand. We are going to start as simple as it can get: Creating a baby neural network that can barely solve problems each of us could easily solve by hand. In each part of this series, we will continue to improve the capabilities of our self-made ANN and try to tackle more challenging problems with it.</p><p><strong>TL;DR</strong>: <a href="https://github.com/frank690/sffresch-code/blob/main/diy-neural-network-part-1/code.ipynb">Take me to the code</a>.</p><h3 id="the-problem">The Problem</h3><p>Consider having three light bulbs. The first two of them (A and B) can be turned either ON (1) or OFF (0) <em>independently</em>. The state of the third light bulb (C) depends on the first two (A and B). Try to figure out how the underlying systematic works by clicking on A and/or B as much as you like.</p><div class="lightbulbs">
+                <p>Part 1 of a series about creating your very own artificial neural network (ANN) by hand. We are going to start as simple as it can get: Creating a baby neural network that can barely solve problems each of us could easily solve by hand. In each part of this series, we will continue to improve the capabilities of our self-made ANN and try to tackle more challenging problems with it.</p><p><strong>TL;DR</strong>: <a href="https://github.com/frank690/sffresch-code/blob/main/diy-neural-network-part-1/code.ipynb">Take me to the code</a>.</p><h3 id="the-problem">The Problem</h3><p>Consider having three light bulbs. The first two of them (A and B) can be turned either ON (1) or OFF (0) <em>independently</em>. The state of the third light bulb (C) depends on the first two (A and B). Try to figure out how the underlying systematic works by clicking on A and/or B as much as you like.</p><div class="lightbulbs">
     <div class="lightbulb">
         
     	<span class="caption">A</span>
