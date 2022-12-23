@@ -1,0 +1,616 @@
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:media="http://search.yahoo.com/mrss/"><channel><title><![CDATA[sffresch]]></title><description><![CDATA[a blog about my projects]]></description><link>http://frank690.github.io/</link><image><url>http://frank690.github.io/favicon.png</url><title>sffresch</title><link>http://frank690.github.io/</link></image><generator>Ghost 5.26</generator><lastBuildDate>Fri, 23 Dec 2022 12:58:13 GMT</lastBuildDate><atom:link href="http://frank690.github.io/rss/" rel="self" type="application/rss+xml"/><ttl>60</ttl><item><title><![CDATA[Becoming a rustling]]></title><description><![CDATA[A few months ago, a friend of mine told me that he was trying to drive an Arduino with rust. "Why would you want to do that?" I asked. "For no particular reason" was his answer, as he looked at me like this question was weird. ]]></description><link>http://frank690.github.io/becoming-a-rustling/</link><guid isPermaLink="false">63a4b01d1d06c50c18e200e2</guid><category><![CDATA[rust]]></category><category><![CDATA[DIY]]></category><category><![CDATA[neural-network]]></category><dc:creator><![CDATA[Frank Eschner]]></dc:creator><pubDate>Thu, 22 Dec 2022 20:25:58 GMT</pubDate><media:content url="https://images.unsplash.com/photo-1562804501-74f1d98e65cc?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDMxfHxydXN0fGVufDB8fHx8MTY3MTczNzM4Nw&amp;ixlib=rb-4.0.3&amp;q=80&amp;w=2000" medium="image"/><content:encoded><![CDATA[<img src="https://images.unsplash.com/photo-1562804501-74f1d98e65cc?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDMxfHxydXN0fGVufDB8fHx8MTY3MTczNzM4Nw&amp;ixlib=rb-4.0.3&amp;q=80&amp;w=2000" alt="Becoming a rustling"><p>A few months ago, a friend of mine told me that he was trying to drive an <a href="https://www.arduino.cc/">Arduino</a> with <a href="https://www.rust-lang.org/">rust</a>. &quot;Why would you want to do that?&quot; I asked. &quot;For no particular reason&quot; was his answer, as he looked at me like this question was weird. </p><p><strong>TL;DR</strong>: <a href="https://github.com/frank690/rusty-playground/tree/8fb155022467ce307b4f03d33b66222f847d1889">Just show me what you programmed in rust.</a></p><p>I did not know it yet, but on the evening of this very day, I started my rust journey. Thinking about my question, I now do understand why it was a bit off. Rust is a beautiful and refreshing language to learn, that allows you to write blazingly fast code, gives you precise and good feedback about what you do wrong, and last but not least, grows your trust in the resilience of the code you write.</p><p>After learning some basics, I set myself the goal of re-programming the <a href="./diy-neural-network-part-1.html">baby neural network I wrote in python</a> some time ago. Coming from python, I was used to a wide variety of modules that drastically reduce the amount of actual development one has to do. In rust, these modules are called <a href="https://crates.io/">crates</a>, but there are of course way fewer (in variety and number), than what I was used to. After stumbling around and between several crates, I got to the point of asking myself, what I came here for in the first place.</p><h3 id="sticks-and-stones-may-break-my-bones-but-learning-something-from-scratch-will-never-hurt-me">Sticks and stones may break my bones, but learning something from scratch will never hurt me</h3><p>So off I was. First things first. I needed some data for my (yet, non-existing) neural network to learn. Remember this image?</p><figure class="kg-card kg-image-card"><img src="http://frank690.github.io/content/images/2022/12/rust_xnor_problem.svg" class="kg-image" alt="Becoming a rustling" loading="lazy" width="1920" height="1440"></figure><p>Creating this XNOR dataset is pretty straightforward. Sample from four different 2D Gaussian distributions that have the same variance but are just shifted along one or both dimensions. Afterward, group the ones on opposite sites. One group contains the positive, and the other group the negative samples.</p><p>Unfortunately, rust does (natively) not provide the possibility of sampling from a Gaussian distribution. It just allows you to sample from Uniform distribution. So after a couple of minutes of remembering previous lectures about sampling, I got to the conclusion of using the <a href="https://en.wikipedia.org/wiki/Box&#x2013;Muller_transform">Box-M&#xFC;ller method</a> to implement my very first <a href="https://doc.rust-lang.org/book/ch05-01-defining-structs.html">struct</a>. </p><pre><code class="language-rust">pub struct Gaussian {
+    mean: f64,
+    std: f64,
+    random_number_generator: ThreadRng
+}
+
+impl Gaussian {
+    pub fn new(mean: f64, std: f64) -&gt; Gaussian {
+        Gaussian { mean: mean, std: std, random_number_generator: thread_rng() }
+    }
+    
+    ...
+    
+    fn box_muller(&amp;mut self) -&gt; Vec&lt;f64&gt; {
+        let x_1: f64 = self.random_number_generator.gen::&lt;f64&gt;();
+        let x_2: f64 = self.random_number_generator.gen::&lt;f64&gt;();
+
+        let mut g: Vec&lt;f64&gt; = Vec::new();
+        
+        let y: f64 = f64::sqrt(-2. * f64::ln(x_1)) * f64::cos(2. * std::f64::consts::PI * x_2);
+        let z: f64 = f64::sqrt(-2. * f64::ln(x_1)) * f64::sin(2. * std::f64::consts::PI * x_2);
+        g.push(self.mean + self.std * y);
+        g.push(self.mean + self.std * z);
+        g
+    }
+}</code></pre><p>Adding a simple public samples method that pays attention to the fact that the previously mentioned sampling method returns two samples at a time, I was now able to sample from a Gaussian distribution. Happy about how smooth that implementation went, I started my second struct in that project, containing the actual XNOR dataset.</p><pre><code class="language-rust">pub struct XnorDataset {
+    pub x: Vector2D,
+    pub y: Vector2D,
+}
+
+impl XnorDataset {
+    pub fn new(num_samples: usize) -&gt; XnorDataset {
+        let mut g_1: Gaussian = Gaussian::new(0., 0.2);
+        let mut g_2: Gaussian = Gaussian::new(1., 0.2);
+
+        let mut x_values: Vec&lt;f64&gt; = Vec::new();
+        let mut y_values: Vec&lt;f64&gt; = Vec::new();
+
+        x_values.append(&amp;mut g_1.samples(num_samples/2));
+        x_values.append(&amp;mut g_2.samples(num_samples/2));
+        x_values.append(&amp;mut g_1.samples(num_samples/4));
+        x_values.append(&amp;mut g_2.samples(num_samples/4));
+        x_values.append(&amp;mut g_1.samples(num_samples/4));
+        x_values.append(&amp;mut g_2.samples(num_samples/4));
+
+        y_values.append(&amp;mut vec![1.; num_samples/4]);
+        y_values.append(&amp;mut vec![0.; num_samples/2]);
+        y_values.append(&amp;mut vec![1.; num_samples/4]);
+
+        let x: Vector2D = Vector2D::new(x_values, [2, num_samples]).transpose();
+        let y: Vector2D = Vector2D::new(y_values, [num_samples, 1]);
+
+        XnorDataset { x, y } 
+    }
+}
+</code></pre><p>Here I just use two instances of the previously introduced Gaussian struct, one with a mean of 0 and one with a mean of 1. Both have the same standard distribution of 0.2. Afterward, I created two vectors (for x and y values) and appended data from both distributions. Finally, these (1D) vectors together with the desired shape, were used to initialize two instances of the Vector2D struct. This struct allows you to create 2D Vectors (some people might just call this a matrix) and do things like dot products, element-wise addition/subtraction, etc.</p><p>At this point, we have our dataset ready in the form of Vector2D instances (matrices) and we can perform all the mathematical operations we need... nearly. Truth is, there is no Vector2D struct in (native) rust. We need to create it ourselves. Long story short: this little de-tour was the major challenge in this project. Even without all the testing (which was actually a lot of fun to write), around 60% of the whole code base (~600 lines) belongs to the Vector2D struct and all its implementations (doing the desired mathematical operations). Here are just some snippets I would like to present to you. First, the actual struct definition. Secondly, the implemented ability to get values from a specific row &amp; column. Lastly, the code that is responsible for transposing.</p><pre><code class="language-rust">pub struct Vector2D {
+    pub values: Vec&lt;f64&gt;,
+    pub shape: [usize; 2]
+}
+
+impl Vector2D {
+    pub fn new(values: Vec&lt;f64&gt;, shape: [usize; 2]) -&gt; Vector2D {
+        if values.len() != shape[0] * shape[1] {
+            panic!(&quot;Shape {:?} does not match length {}&quot;, shape, values.len());
+        }
+        Vector2D { values, shape }
+    }
+
+    ... 
+    
+    pub fn get_mat_value(&amp;self, i: usize, j: usize) -&gt; &amp;f64 {
+        if (i &gt;= self.shape[0]) | (j &gt;= self.shape[1]) {
+            panic!(&quot;Index out of bounds.)
+        } else {
+            &amp;self.values[i * self.shape[1] + j]
+        }
+    }
+    
+    ...
+    
+    pub fn transpose(&amp;self) -&gt; Vector2D {
+        let new_shape: [usize; 2] = [self.shape[1], self.shape[0]];
+        let mut new_values: Vec&lt;f64&gt; = vec![];
+
+        for row in 0..new_shape[0] {
+            for column in 0..new_shape[1] {
+                new_values.push(*self.get_mat_value(column, row));
+            }
+        }
+        Vector2D::new(new_values, new_shape)    
+    }
+}
+</code></pre><p>Besides programming the loss- and activation functions, I was finally able to start working on the neural network itself. Having the Vector2D class at hand and being a lot more familiar with rust, compared to how I started this project, writing this part was a real pleasure. Besides the definition of (hyper-) parameters and gradients, this is what the basic structure of the neural network struct looks like.</p><pre><code class="language-rust">pub struct NeuralNetwork {
+    pub parameters: Parameters,
+    pub hyperparameters: HyperParameters,
+    pub gradients: Gradients,
+}
+
+impl NeuralNetwork {
+    pub fn new(shape: Vec&lt;usize&gt;) -&gt; NeuralNetwork {
+        let learning_rate: f64 = 1.;
+        let hyperparameters: HyperParameters = HyperParameters::new(shape, learning_rate);
+
+        let weights = initialize_weights(&amp;hyperparameters.shape);
+        let biases = initialize_biases(&amp;hyperparameters.shape);
+        let parameters: Parameters = Parameters::new(hyperparameters.layers, weights, biases);
+
+        let gradients = Gradients::new(hyperparameters.layers);
+
+        NeuralNetwork { parameters, gradients, hyperparameters }
+    }
+	
+    pub fn forward(&amp;mut self, input: &amp;Vector2D) -&gt; Vector2D {
+        ...
+    }
+
+    pub fn backward(&amp;mut self, true_output: &amp;Vector2D) {
+        ...
+    }
+
+    pub fn update(&amp;mut self) {
+        ...
+    }
+
+    pub fn training(&amp;mut self, input: Vector2D, true_output: Vector2D, epochs: usize, verbose: bool) {
+        ...
+    }
+}
+</code></pre><p>Putting it all together in the main rust file, the whole process looks like this. First, initialize the dataset as well as the neural network itself. Then start the training process. Note that I use the very same architecture, number of iterations, and learning rate, as in my <a href="./diy-neural-network-part-1.html">python counterpart</a>.</p><pre><code class="language-rust">fn main() {  
+    let data: XnorDataset = XnorDataset::new(200);
+    let mut nn = NeuralNetwork::new(vec![2, 3, 1]);
+    
+    nn.training(data.x, data.y, 1000, false);
+
+    println!(&quot;\n---------------- Post-training parameters ----------------&quot;);
+    for n in 0..nn.parameters.weights.len() {
+        println!(&quot;\nWeights[{}]: &quot;, n);
+        nn.parameters.weights[n].print();
+
+        println!(&quot;\nBias[{}]: &quot;, n); 
+        nn.parameters.biases[n].print();
+    }
+}
+</code></pre><pre><code class="language-shell">---------------- Post-training parameters ----------------
+
+Weights[0]:
+4.730702044841886, 5.106814916713993, -6.803071958464404,
+-7.009005656269669, 5.1439986508053295, 5.024278617158004,
+
+Bias[0]:
+-1.8700241708409902, -1.676789919102918, -2.782434710378273,
+
+Weights[1]:
+-9.280510941013535,
+-4.604883326157851,
+-9.424842425550281,
+
+Bias[1]:
+8.375229860334752,</code></pre><p>Since I did not get into generating graphical output yet, I took the generated data as well as the trained weights + biases to draw the same decision boundaries I used to do in my earlier post. As expected, the results look just like the python implementation and I am happy about what I learned and how well everything turned out. Rust is a great and fun language to learn and I am really looking forward to finding my next small project where I can apply and sharpen my skills. If you are interested in the whole code, <a href="https://github.com/frank690/rusty-playground/tree/8fb155022467ce307b4f03d33b66222f847d1889">click here</a>.</p><figure class="kg-card kg-image-card"><img src="http://frank690.github.io/content/images/2022/12/rust_xnor_decision_boundaries.svg" class="kg-image" alt="Becoming a rustling" loading="lazy" width="1920" height="1440"></figure>]]></content:encoded></item><item><title><![CDATA[Softmax]]></title><description><![CDATA[In this post, I want to introduce the softmax function (also known as the normalized exponential function), outline its use case, and present a python implementation that will come in handy in the development of our artificial neural network.]]></description><link>http://frank690.github.io/softmax/</link><guid isPermaLink="false">6287f573e42541ea382514e3</guid><category><![CDATA[theory]]></category><category><![CDATA[classification]]></category><dc:creator><![CDATA[Frank Eschner]]></dc:creator><pubDate>Fri, 20 May 2022 20:45:57 GMT</pubDate><media:content url="http://frank690.github.io/content/images/2022/07/Leonhard_Euler.jpg" medium="image"/><content:encoded><![CDATA[<img src="http://frank690.github.io/content/images/2022/07/Leonhard_Euler.jpg" alt="Softmax"><p>In this post, I want to introduce the <a href="https://en.wikipedia.org/wiki/Softmax_function">softmax function</a> (also known as the normalized exponential function), outline its use case, and present a python implementation that will come in handy in the development of our <a href="../tag/neural-network-series/">artificial neural network</a>.</p><p><strong>TL;DR</strong>: Use softmax when doing multiclass classification. It turns arbitrary long output into a probability distribution (sum of all values equal to one). &#xA0;<a href="https://github.com/frank690/sffresch-code/blob/main/softmax/code.ipynb">Here is the code</a>.</p><h3 id="what-is-the-softmax-function">What is the softmax function?</h3><p>Given a real-valued vector of arbitrary length $(z \in \mathbf{R}^{C}, C \in \mathbf{N})$, with values ranging from $(-\infty, \infty)$, the softmax function scales each of these values down so that they are in the range of $(0, 1)$ and their sum is exactly 1. In practical terms, it converts the given values $(z_{i})$ into a probability distribution, in which previously high values will result in a high probability and low values in a low probability. What is high and low depends on the given numbers themselves. As a formula, the softmax looks like this</p><p>$$ S_{y}(z) =\frac{e^{z_{y}}}{\sum_{c=1}^{C}e^{z_{c}}} $$</p><p>Assuming the given vector is $z$ and it has $C$ elements, one can compute the probability of the $y$&apos;th element by computing $e^{z_{y}}$ and divide it by the sum of all elements, also as powers of $e$.</p><h3 id="wait-what-can-i-have-an-example">Wait, what? Can I have an example?</h3><p>Sure! Let us use the example mentioned in my post about <a href="../differentiate-all-the-things/">the differentiation of the softmax in combination with the log-loss</a>. Assume we have an MCC problem, in which we want to predict if a given image shows a dog, a cat, or a chicken. Let us choose the following image.</p><!--kg-card-begin: html--><center><img style="width: 33%;" src="https://github.com/frank690/sffresch-code/raw/main/differentiate-all-the-things/images/cat.png" class="kg-image" alt="Softmax" loading="lazy"><br></center><!--kg-card-end: html--><p>If we pass this cat image to our neural network, it will return three values that indicate its prediction (one for each of the classes), in ML these values are called logits. So for 3 possible classes (dog, cat, chicken), our network might return something like $(-1.5, 15.3, 13.37)$. Looking at these logits, you can easily see that the network disagrees with this image being a dog, but the values for cat or chicken seem rather close. We continue by passing these logits to the softmax function, where they are turned into a discrete probability distribution, in this case, $(0, 0.873, 0.127)$. In other words: The network is 0% certain that the given image is a dog, 87.3% it&apos;s a cat, and 12.7% that it was given a chicken image. Suddenly, the rather close logits for cat and chicken, have been turned into probabilities that are far apart and way easier to interpret.</p><h3 id="i-heard-there-can-be-stability-problems">I heard there can be stability problems?</h3><p>Yes. Much like ourselves, the hardware we use is at some point limited in its computational capabilities. These limits are met when doing computations with very small or very big numbers. In such cases, we typically encounter messages like <strong>overflow warning</strong> (for very big numbers), or <strong>division by zero error</strong> (when trying to do further computations with very small numbers). Since we are using the exponential function, these limits can be reached rather quickly and we end up in numerical instabilities. Here is a little example to show you just how quickly these situations can arise.</p><!--kg-card-begin: html--><pre class="line-numbers language-python"><code>import numpy as np
+
+big_h = [42, 1337, 557]  # our networks output that we will feed to softmax
+softmax_nominator = np.exp(big_h)  # array([1.73927494e+018, inf, 7.98043234e+241])
+# RuntimeWarning: overflow encountered in exp
+
+small_h = [-42, -1337, -557]
+softmax_nominator = np.exp(small_h)  # array([5.74952226e-019, 0.00000000e+000, 1.25306494e-242])
+</code></pre><!--kg-card-end: html--><h3 id="ok-numerical-instabilities-are-a-thing-what-now">OK. Numerical instabilities are a thing. What now?</h3><p>We will use a neat little workaround to tackle this problem: Subtract each output of our network by its largest value before passing it to the softmax function! This results in our nominator always having $e^0 = 1$ as its biggest value. With $k$ different inputs, we can be sure that the value of the denominator of our softmax function (the sum of all nominator values) is always in the interval $[1, k]$. This puts us in a numerically safe space, that theoretically can only run into problems again if we try to pass the softmax function a stupidly large vector (e.g. with over 1 * 10^250 elements) with (in the worst case) the same value over and over again. But I guess one would run into memory issues first.</p><!--kg-card-begin: html--><pre class="line-numbers language-python"><code>import numpy as np
+
+hypothesis = [1335, 1337, 1322]  # our networks output that we will feed to softmax
+safe_hypothesis = hypothesis - np.max(hypothesis)  # array([ -2,   0, -15])
+nominator = np.exp(safe_hypothesis)  # array([1.35335283e-01, 1.00000000e+00, 3.05902321e-07])
+denominator = np.sum(nominator)  # 1.1353355891389334
+result = nominator / denominator  # array([1.19202890e-01, 8.80796841e-01, 2.69437797e-07])
+
+</code></pre><!--kg-card-end: html--><h3 id="but-why-can-we-simply-change-all-the-values">But why can we simply change all the values?</h3><p>Because it does not matter to the result of the computation. Look at the following equation. We introduce a trivial 1 which we turn into the variable $K$, respectively $\frac{K}{K}$. Afterward, we subsequently modify the equation until $K$ ends up in the exponential function itself. Here we can replace it with any value we want, which includes (of course) the maximum value of the output of our network.</p><p>$$ S_{y}(z) =\frac{e^{z_{y}}}{\sum_{c=1}^{C}e^{z_{c}}} <br>= 1 * \frac{e^{z_{y}}}{\sum_{c=1}^{C}e^{z_{c}}}<br>= \frac{K}{K} * \frac{e^{z_{y}}}{\sum_{c=1}^{C}e^{z_{c}}}<br>= \frac{K * e^{z_{y}}}{K * \sum_{c=1}^{C}e^{z_{c}}}<br>= \frac{K * e^{z_{y}}}{\sum_{c=1}^{C}K * e^{z_{c}}} <br>= \frac{e^{z_{y} + log(K)}}{\sum_{c=1}^{C}e^{z_{c} + log(K)}}<br>= \frac{e^{z_{y} - max(e^{z_{i}})}}{\sum_{c=1}^{C}e^{z_{c} - max(e^{z_{i}})}} $$</p><h3 id="code">Code</h3><!--kg-card-begin: html--><pre class="line-numbers language-python"><code>import numpy as np
+
+def softmax(z: np.ndarray, gradient: bool = False) -&gt; np.ndarray:
+    &quot;&quot;&quot;
+    Apply the softmax transformation to the given vector (z).
+    If the provided gradient flag is true, return the derivative of the softmax.
+    :param z: Data vector of shape (C X 1)
+    :param gradient: Boolean flag. Default is False.
+    :return: Softmax transformed values or the gradient of the softmax.
+    &quot;&quot;&quot;
+    C, _ = z.shape
+    
+    z -= np.max(z, axis=1, keepdims=True)  # for numeric stability
+    S = np.exp(z) / np.exp(z).sum(axis=1, keepdims=True)
+    return S
+</code></pre><!--kg-card-end: html--><h3 id="summary">Summary</h3><p>The softmax is a great tool to use when doing MCC as it turns (possibly very large) outputs of our neural network (logits) into nicely interpretable and further processable probabilities. If you want to check out the code of this post, <a href="https://github.com/frank690/sffresch-code/blob/main/softmax/code.ipynb">click here</a>.</p><h3 id="synonyms">Synonyms</h3><p>MCC - Multiclass classification<br>logits - Output of a neural network before the last layer</p>]]></content:encoded></item><item><title><![CDATA[Building a Framework]]></title><description><![CDATA[Part 2 is all about restructuring the code of our previously made neural network so we can use it in a way more elegant way, much like frameworks like Tensorflow or PyTorch. ]]></description><link>http://frank690.github.io/diy-neural-network-part-2/</link><guid isPermaLink="false">6276236f07f3ac04aa63e439</guid><category><![CDATA[ANN]]></category><category><![CDATA[DIY]]></category><category><![CDATA[python]]></category><category><![CDATA[neural-network-series]]></category><dc:creator><![CDATA[Frank Eschner]]></dc:creator><pubDate>Thu, 12 May 2022 11:02:59 GMT</pubDate><media:content url="https://images.unsplash.com/photo-1444530495635-029990f82ce8?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDE0fHxzZWVkbGluZ3xlbnwwfHx8fDE2NTIzNTM0NTY&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" medium="image"/><content:encoded><![CDATA[<img src="https://images.unsplash.com/photo-1444530495635-029990f82ce8?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDE0fHxzZWVkbGluZ3xlbnwwfHx8fDE2NTIzNTM0NTY&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" alt="Building a Framework"><p>This is part 2 of the DIY neural network series and it is all about restructuring the <a href="https://github.com/frank690/sffresch-code/blob/main/diy-neural-network-part-1/code.ipynb">code</a> of our <a href="../diy-neural-network-part-1">previously made neural network</a> so we can use it in a way more elegant way, much like frameworks like <a href="https://www.tensorflow.org/">Tensorflow</a> or <a href="https://pytorch.org/">PyTorch</a>. For this purpose, we will construct a base class and consistently add more features and complexity to it within this and the following parts of the series.</p><p><strong>TL;DR</strong>: <a href="https://github.com/frank690/sffresch-code/blob/main/diy-neural-network-part-2/code.ipynb">Take me to the nice code</a>.</p><h3 id="the-base-class">The base class</h3><p>Artificial neural networks (ANNs) can consist of a variety of differently shaped layers and have various activation and loss functions. Being able to choose from these possibilities, when creating an ANN (programmatically) easily and elegantly, is key. First, we will come up with a class representation for a simple ANN that expects a list of integers as input, which represent the number of neurons in each layer.</p><pre><code class="language-python">class ANN:
+    &quot;&quot;&quot;
+    Class representation of an artificial neural network (ANN).
+    &quot;&quot;&quot;
+    def __init__(self, layers: List[int]):
+        &quot;&quot;&quot;
+        Initialization function to set up the class.
+        :param layers: Number of neurons for each layer that should be set up as List of ints.
+        &quot;&quot;&quot;
+        self.W = dict()  # holding the weight matrices
+        self.b = dict()  # holding the bias values
+        self.z = dict()  # holding the intermediate values
+        self.a = dict()  # holding the activation values
+        
+        self.dW = dict()  # holding the gradient of the weight matrices
+        self.db = dict()  # holding the gradient of the bias values
+        
+        self.layers = layers  # User defined layers
+
+        self._construct()
+        
+    def _construct(self):
+        &quot;&quot;&quot;
+        Construct the internal shape of the ANN.
+        &quot;&quot;&quot;
+        for idx, layer in enumerate(self.layers[:-1]):
+            self.W[idx] = np.random.randn(layer, self.layers[idx+1])
+            self.b[idx] = np.zeros(self.layers[idx+1])</code></pre><p>With the information about the neurons in each layer, the basic weight and bias structure (which will be optimized during the training process) is implemented. For now, the initial weight values are derived from a <a href="https://en.wikipedia.org/wiki/Normal_distribution">normal Gaussian distribution</a> and the bias values are set to plain zeros. Note that during the class initialization, there are four other dictionaries added to the class parameters. These hold information about the derivates of the weights ($dW$) and biases ($db$) but also about some intermediate ($z$) and activation values ($a$).</p><h3 id="the-cost-function">The cost function</h3><p>Depending on what kind of problem you want to solve, a variety of cost functions are applicable. Here we are going to stick with the cross-entropy-loss, that we already introduced in the <a href="../diy-neural-network-part-1/">previous post of this series</a>. We accomplish this by adding the following method to our base class. Note that by providing a boolean true as the gradient parameter, we return the derivative of the loss. At a later point, we will provide a variety of loss functions and (ideally) grant the user the opportunity to implement custom functions, as well.</p><pre><code class="language-python">def loss(self, y: np.ndarray, gradient: bool = False) -&gt; np.ndarray:
+    &quot;&quot;&quot;
+    Compute the cross entropy loss for the given hypothesis (h) in contrast to the true results (y).
+    If the gradient flag is True, the derivative of said loss function will be returned.
+    :param y: True output data.
+    :param gradient: Bool flag to indicate if gradient should be returned.
+    :return: Cost/Loss of the current hypothesis.
+    &quot;&quot;&quot;
+    h = self.a[len(self.layers)-2]  # our prediction / hypothesis
+
+    if gradient:
+    	return -(y // h) + ((1 - y) // (1 - h))
+    return -(1/y.size) * ((y.T @ np.log(h)) + ((1 - y.T) @ np.log(1 - h)))</code></pre><h3 id="the-activation-function">The activation function</h3><p>Just like the cost function, the activation function also highly depends on the problem that one wants to solve. One of the classic approaches is to use the <a href="https://en.wikipedia.org/wiki/Sigmoid_function">Sigmoid function</a>. We add this functionality with the following code snippet. Also here, we are granting the user the opportunity to get the gradient of the activation function by passing the boolean gradient flag, accordingly.</p><pre><code class="language-python">def activation(self, X: np.ndarray, gradient: bool = False) -&gt; np.ndarray:
+    &quot;&quot;&quot;
+    For the activation function we use the sigmoid.
+    It will return 0 for every x &lt;&lt; 0 and 1 for every x &gt;&gt; 0.
+    Return the gradient of the sigmoid if a True gradient flag is given.
+    :param X: data to transform via sigmoid function:
+    :return: transformed data that lies between 0 and 1.
+    &quot;&quot;&quot;
+    sigmoid = 1 / (1 + np.exp(-X))
+    if gradient:
+    	return sigmoid * (1 - sigmoid)
+    return sigmoid</code></pre><h3 id="propagate-forward">Propagate forward</h3><p>Part of training an ANN and also a mandatory part to make predictions is the ability to propagate forward. Since the number of layers is decided upon the class initialization, we have to loop over all given weights and biases and compute the resulting intermediate ($z$) and activation values ($a$). The computed values will then be stored in the already existing dictionaries for said values.</p><pre><code class="language-python">def forward(self, X: np.ndarray):
+    &quot;&quot;&quot;
+    Successively propagate the input data (X) through the ANN and store all
+    intermediate and activation values in their corresponding dictionaries.
+    :param X: Input data to make predictions on.
+    &quot;&quot;&quot;
+    self.a[-1] = X
+    for idx in range(len(self.layers)-1):
+        self.z[idx] = self.a[idx-1] @ self.W[idx] + self.b[idx]
+        self.a[idx] = self.activation(self.z[idx])</code></pre><h3 id="propagate-backward">Propagate backward</h3><p>Once we propagated forward through the whole ANN, our hypothesis (e.g. prediction) is represented by the output of the latest activation value. Next, we compute the loss and work our way backward through the network until we reached (computed) all derivations (gradients) of all our weights and biases. With these derivations ($dW$ and $db$) we head on to update our weights and biases.</p><pre><code class="language-python">def backward(self, y: np.ndarray):
+    &quot;&quot;&quot;
+    Successively propagate the prediction as well as the true output backwards through the ANN.
+    Store the resulting gradients for weights and biases in their corresponding dictionaries.
+    :param y: True output data.
+    &quot;&quot;&quot;
+    da = self.loss(y=y, gradient=True)  # get gradient of last activation value
+
+    for idx in range(len(self.layers)-2, -1, -1):  # loop from the last layer to zero (effectively)
+        dz = da * self.activation(X=self.z[idx], gradient=True)
+        da = dz @ self.W[idx].T  
+
+        self.db[idx] = np.mean(dz, axis=0)  # get gradient of bias. use mean to pay respect to sample size.
+        self.dW[idx] = (self.a[idx-1].T @ dz) / y.size  # get gradient of weights. divide by number of samples.  </code></pre><h3 id="predict">Predict</h3><p>To predict the output, given some data, all we need to do is propagate said data forward through the network and look at the resulting hypothesis (e.g. activation value of the very last layer). Since we are only dealing with binary classification at this point, we apply an (arbitrary) threshold to the resulting predictions. This results in the predictions of our network being absolute (either class 0 or 1) for each provided sample.</p><pre><code class="language-python">def predict(self, X: np.ndarray, threshold: float = 0.5) -&gt; np.ndarray:
+    &quot;&quot;&quot;
+    Predict the output of the given data (X).
+    :param X: Data to make prediction on.
+    :param threshold: Threshold that decides if predicted value belongs to class 0 or 1.
+    :return: Predicted value.
+    &quot;&quot;&quot;
+    self.forward(X)
+    return self.a[len(self.layers)-2] &gt; threshold
+</code></pre><h3 id="update">Update</h3><p>After computing the gradients of our weights ($dW$) and biases ($db$) during backpropagation, we might as well use them now to update said weights and biases. Since we stored the gradients in their own dictionaries (which is a class parameter), it is easy to call and update them. In contrast to our previous code, we introduced the learning rate. This is a mere factor that scales the strength of the applied update. Previously, we just set the learning rate to be a fixed 1 (and thus omitted it in the code).</p><pre><code class="language-python">def update(self, learning_rate: float):
+    &quot;&quot;&quot;
+    Update the current weights and biases by multiplying the learning rate with the previously computed gradients.
+    :param learning_rate: The step size of the gradient applied to update the weights and biases (e.g. to learn).
+    &quot;&quot;&quot;
+    for idx in range(len(self.layers)-1):
+        self.W[idx] -= learning_rate * self.dW[idx]
+        self.b[idx] -= learning_rate * self.db[idx]  </code></pre><h3 id="training">Training</h3><p>Now that we have integrated the methods for working our way through the network (forth and back), computing the loss of each sample as well as updating the weights and biases, we can put everything together to implement the training procedure. Furthermore, we collect the loss of each epoch and return it as a list. This way, we can plot a nice learning curve in the end.</p><pre><code class="language-python">def fit(self, X: np.ndarray, y: np.ndarray, learning_rate: float = 1, epochs: int = 1000) -&gt; List:
+    &quot;&quot;&quot;
+    Run the training procedure on the given data for the given epochs.
+    This essentially fits the network to the given data.
+    Print current loss value every epoch.
+    :param X: Input data.
+    :param y: True output data.
+    :param learning_rate: The step size of the gradient applied to update the weights and biases (e.g. to learn).
+    :param epochs: Number of training cycles to perform.
+    :return: List of loss for each epoch.
+    &quot;&quot;&quot;
+    loss_history = []
+    
+    for epoch in range(epochs):
+        self.forward(X=X)
+        loss = self.loss(y=y)
+        self.backward(y=y)
+        self.update(learning_rate)
+        
+        loss_history.append(loss.item())
+        print(f&quot;({epoch+1}/{epochs}): {loss.item()}&quot;)
+        
+    return loss_history
+</code></pre><h3 id="accuracy">Accuracy</h3><p>Instead of <em>just</em> refactoring our previous code into a nice and handy class, we might as well add something new to it. Having a metric to know how accurately your (trained) model performs on a given dataset, is quite valuable. So this is what we are going to implement. Accuracy describes the ratio of correctly identified classes to all the classifications it predicted (correct and incorrect ones).</p><pre><code class="language-python">def accuracy(self, X: np.ndarray, y: np.ndarray) -&gt; float:
+    &quot;&quot;&quot;
+    Perform predictions on all the given data (X) and compare these predictions to the ground truth values (y).
+    Afterwards get the ratio of correctly to correctly+incorrectly predicted classes. This is the accuracy.
+    :param X: Input data.
+    :param y: True output data.
+    :return: Accuracy as float value.
+    &quot;&quot;&quot;
+    return np.sum(self.predict(X) == y) / y.size</code></pre><h3 id="testing">Testing</h3><p>Using the same XNOR data we had in the <a href="../diy-neural-network-part-1/">previous post of this series</a>, we can confirm that we see near-identical results. Also, our accuracy on both, training and testing data confirms that we fitted our model (ANN) successfully to the generated data.</p><pre><code class="language-python">model = ANN([2,3,1])                # initialize our ANN model
+loss = model.fit(X_train, y_train)  # fit it to our training data</code></pre><pre><code class="language-shell">(1/1000): 0.8624013698343836
+(2/1000): 0.7502329385727288
+(3/1000): 0.7085321817003911
+...
+(998/1000): 0.09573808006389115
+(999/1000): 0.0956405468534334
+(1000/1000): 0.0955433438225078</code></pre><pre><code class="language-python">model.accuracy(X_train, y_train)  # 0.975
+model.accuracy(X_test, y_test)    # 0.955</code></pre><h3 id="training-loss-curve">(Training) Loss curve</h3><p>This is just the visualization of the list of loss values that we got from training the model. </p><figure class="kg-card kg-image-card"><img src="http://frank690.github.io/content/images/2022/05/learning_curve.svg" class="kg-image" alt="Building a Framework" loading="lazy"></figure><h3 id="summary">Summary</h3><p>And that&apos;s it! We successfully refactored our previous code into a single class that we can now use to easily create ANNs with arbitrary sizes (layers and number of neurons). Admittingly, there is still plenty of work to do from this point on. In the next posts of this series, we will add new capabilities to our ANN as well as continually improve its code structure, so that it always stays convenient for us to use. Click <a href="https://github.com/frank690/sffresch-code/blob/main/diy-neural-network-part-2/code.ipynb">here</a> to see the complete code of this post in a jupyter notebook.</p><p>Thank you for reading!</p>]]></content:encoded></item><item><title><![CDATA[Differentiate all the things]]></title><description><![CDATA[In this post, I am going to show you how to compute and implement the combination of the derivative of the softmax and the log-loss functions to run your gradient descent algorithm.]]></description><link>http://frank690.github.io/differentiate-all-the-things/</link><guid isPermaLink="false">6270d0c70a8e1a80c9eec4a4</guid><category><![CDATA[ANN]]></category><category><![CDATA[theory]]></category><category><![CDATA[data-science]]></category><category><![CDATA[softmax]]></category><category><![CDATA[log-loss]]></category><category><![CDATA[classification]]></category><dc:creator><![CDATA[Frank Eschner]]></dc:creator><pubDate>Tue, 03 May 2022 07:10:46 GMT</pubDate><media:content url="https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDJ8fGNhdHMlMjBhbmQlMjBkb2dzfGVufDB8fHx8MTY1MTU2MjAyMA&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" medium="image"/><content:encoded><![CDATA[<img src="https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDJ8fGNhdHMlMjBhbmQlMjBkb2dzfGVufDB8fHx8MTY1MTU2MjAyMA&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" alt="Differentiate all the things"><p>In this post, I will show you how to compute and implement the combination of the derivative of the <a href="https://en.wikipedia.org/wiki/Softmax_function">softmax</a> and the <a href="https://en.wikipedia.org/wiki/Cross_entropy#Cross-entropy_loss_function_and_logistic_regression">log-loss</a> functions to run your <a href="https://en.wikipedia.org/wiki/Gradient_descent">gradient descent</a> algorithm.</p><p><strong>TL;DR</strong>: <a href="https://github.com/frank690/sffresch-code/blob/main/differentiate-all-the-things/code.ipynb">This is the code</a> and these are the derivatives. $ \frac{\delta L}{\delta w_{y}} = &#xA0;- X_{n}^{T} * (1 - S_{y}), \frac{\delta L}{\delta w_{j}} = X_{n}^{T} * S_{j} $</p><h3 id="preface">Preface</h3><p>Let us assume that you want to create your neural network from scratch and you have decided upon using it for <a href="https://en.wikipedia.org/wiki/Multiclass_classification">multiclass classification</a> (MCC). There is a good chance, that you will choose the softmax in combination with the log-loss to do the job. Now to update the weights of your network accordingly, you need to know the solution to the differentiation of the whole thing (with respect to (wrt) the weights that you want to optimize).</p><p>$$ \frac{\delta L}{\delta w}=-\frac{1}{N}\sum_{n=1}^{N}log(\frac{e^{X_{n}w_{y}}}{\sum_{c=1}^{C}e^{X_{n}w_{c}}})\frac{\delta}{\delta w} $$</p><p>I highly encourage you to grab some pen and paper and try to come up with the derivatives yourself. In case you are stuck, just keep on reading until you know how to continue. To avoid confusion from the get-go, let us define what each term of the differentiation means and also what dimensions it has.</p><!--kg-card-begin: html--><table>
+    <tr>
+        <td><b>Symbol</b></td>
+        <td style="white-space: nowrap"><b>Meaning</b></td>
+        <td><b>Description</b></td>
+    </tr>
+    <tr>
+    	<td>$ \delta $</td>
+        <td style="white-space: nowrap">Delta</td>
+        <td>The differentiation sign.</td>
+    </tr>
+    <tr>
+    	<td>$ L $</td>
+        <td style="white-space: nowrap">Overall loss</td>
+        <td>This is what the log-loss ultimately computes.</td>
+    </tr>
+    <tr>
+    	<td>$ X $</td>
+        <td style="white-space: nowrap">Data</td>
+        <td>Our input data of the MCC is a matrix. Imagine each row of the matrix is an actual image we want to classify.</td>
+    </tr>
+    <tr>
+    	<td>$ w $</td>
+        <td style="white-space: nowrap">Weight</td>
+        <td>The weight of your neural network that you want to optimize.</td>
+    </tr>
+    <tr>
+    	<td>$ -\frac{1}{N} $</td>
+        <td style="white-space: nowrap">Minus 1 over N</td>
+        <td>Divides by minus the number of samples (data points) we have in total.</td>
+    </tr>
+    <tr>
+    	<td>$ \sum_{n=1}^{N} $</td>
+        <td style="white-space: nowrap">Sum from n = 1 to N</td>
+        <td>Sum the following expression over each sample, starting with 1 and ending with N.</td>
+    </tr>
+    <tr>
+    	<td>$ log(...) $</td>
+        <td style="white-space: nowrap">Logarithm</td>
+        <td>Apply the logarithm to whatever is computed inside the brackets.</td>
+    </tr>
+    <tr>
+    	<td>$ X_{n}w_{y} $</td>
+        <td style="white-space: nowrap">Data times weights</td>
+        <td>Compute the product of the n&apos;th sample (row) of the input data with the y&apos;th column of the weights. Note that y represents the (one) correct class of the given sample.</td>
+    </tr>
+    <tr>
+    	<td>$ e^{...} $</td>
+        <td style="white-space: nowrap">Exponential</td>
+        <td>Compute e to the power of whatever is written in its exponential.</td>
+    </tr>
+    <tr>
+    	<td>$ \sum_{c=1}^{C} $</td>
+        <td style="white-space: nowrap">Sum from c = 1 to C</td>
+        <td>Sum the following expression over each class, starting with 1 and ending with C.</td>
+    </tr>
+    <tr>
+    	<td>$ X_{n}w_{c} $</td>
+        <td style="white-space: nowrap">Data times weights</td>
+        <td>Compute the product of the n&apos;th sample (row) of the input data with the c&apos;th column of the weights.</td>
+    </tr>
+    <tr>
+    	<td>$ \frac{\delta}{\delta w} $</td>
+        <td style="white-space: nowrap">Derivative wrt weights</td>
+        <td>Since the whole previous term represents $ L $ but we still want to show that we want to differentiate this wrt the weights, we attach this term.</td>
+    </tr>
+    <tr><td><br></td></tr>
+    <tr>
+        <td><b>Symbol</b></td>
+        <td style="white-space: nowrap"><b>Dimension</b></td>
+        <td><b>Description</b></td>
+    </tr>
+    <tr>
+        <td>$ X $</td>
+        <td style="white-space: nowrap">$ (N \times D) $</td>
+        <td>Each row holds a sample of dimension D. There are N samples in total.</td>
+    </tr>
+    <tr>
+        <td>$ w $</td>
+        <td style="white-space: nowrap">$ (D \times C) $</td>
+        <td>Each column represents a class of the classification problem (e.g. cat, dog, car, ...) in D dimensions. There are C classes in total.</td>
+    </tr>
+    <tr>
+        <td>$ X_{n} $</td>
+        <td style="white-space: nowrap">$ (1 \times D) $</td>
+        <td>A single sample (row) with dimension D.</td>
+    </tr>
+    <tr>
+        <td>$ w_{c} $</td>
+        <td style="white-space: nowrap">$ (D \times 1) $</td>
+        <td>The weights of a single class (column) with dimension D.</td>
+    </tr>
+</table><!--kg-card-end: html--><h3 id="divide">Divide ...</h3><p>By applying a bit of calculus, we can make our lives a lot easier. We are going to separate the softmax ($ S_{y} $) and the log-loss function ($ L $) from one another and differentiate them each at a time. Note the little index ($ y $) on the softmax variable, indicating that this computes the value wrt the y&apos;th column of the weight matrix. Our goal of computing the gradient of the loss wrt the weights we want to optimize ($ \frac{\delta L}{\delta w} $), is split into the product of the gradient of the loss wrt the softmax ($ \frac{\delta L}{\delta S_{y}} $) times the gradient of the softmax wrt the weights ($ \frac{\delta S_{y}}{\delta w} $). </p><p>$$ \frac{\delta S_{y}}{\delta w}=\frac{e^{X_{n}w_{y}}}{\sum_{c=1}^{C}e^{X_{n}w_{c}}}\frac{\delta}{\delta w} $$</p><p>$$ \frac{\delta L}{\delta S_{y}}=-\frac{1}{N}\sum_{n=1}^{N}log(S_{y})\frac{\delta}{\delta S_{y}} $$</p><h3 id="and-conquer-the-softmax">... and conquer (the softmax)</h3><p>Let us assume for a second that we have only 3 classes &#xA0;($ C = 3 $) that we want to classify. Furthermore, we will just look at the first sample in the dataset. In this case, we can write out the summand in the denominator so the whole expression looks a lot less intimidating to differentiate.</p><p>$$ \frac{\delta S_{y}}{\delta w}=\frac{e^{X_{1}w_{y}}}{e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}}}\frac{\delta}{\delta w} $$</p><p>The question that now arises is, what is the ground truth ($ y $) for our first sample? If our MCC problem deals with identifying cats ($ y = 1 $), dogs ($ y = 2 $), and chickens ($ y = 3 $) on each sample (image) we can just assume that in fact on the first sample ($ n = 1 $) a dog can be seen. Thus, our ground truth for the first image is ($ y = 2 $). Here are the first four images of our dataset with the corresponding ground truth underneath them.</p><!--kg-card-begin: html--><table style="padding: 10px">
+    <tr align="center">
+        <td>($ n = 1 $)</td>
+        <td>($ n = 2 $)</td>
+        <td>($ n = 3 $)</td>
+        <td>($ n = 4 $)</td>
+    </tr>
+    <tr style="margin: 10px">
+        <td><img src="https://github.com/frank690/sffresch-code/raw/main/differentiate-all-the-things/images/dog.png" alt="Differentiate all the things"></td>
+		<td><img src="https://github.com/frank690/sffresch-code/raw/main/differentiate-all-the-things/images/cat.png" alt="Differentiate all the things"></td>
+		<td><img src="https://github.com/frank690/sffresch-code/raw/main/differentiate-all-the-things/images/chick.png" alt="Differentiate all the things"></td>
+		<td><img src="https://github.com/frank690/sffresch-code/raw/main/differentiate-all-the-things/images/cat2.png" alt="Differentiate all the things"></td>
+</tr>
+    <tr align="center">
+        <td>($ y = 2 $)</td>
+        <td>($ y = 1 $)</td>
+        <td>($ y = 3 $)</td>
+        <td>($ y = 1 $)</td>
+    </tr>
+</table><!--kg-card-end: html--><p>Since we have three different columns in the weight matrix ($ w_{1}, w_{2}, w_{3} $) we also need to do three separate derivatives (for now). Luckily for us, nothing fancy is happening when doing the actual differentiation, so all we need to know is a little calculus. More specifically, the <a href="https://en.wikipedia.org/wiki/Quotient_rule">quotient rule</a> as well as <a href="https://www.google.com/search?q=how+to+differentiate+an+exponential+function">how to differentiate an exponential function</a>. Starting the differentiation wrt our first weight column ($ w_{1} $) ...</p><p>$$ \frac{\delta S_{2}}{\delta w_{1}}=\frac{e^{X_{1}w_{2}}}{e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}}}\frac{\delta}{\delta w_{1}} $$</p><p>With the quotient-rule in mind we can define $ g(w_{1}) = e^{X_{1}w_{2}} $ and $ h(w_{1}) = e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}} $. Differentiating these terms brings us to $ g&apos;(w_{1}) = 0 $ (since there is no $ w_{1} $ in the equation) and $ h&apos;(w_{1}) = X_{1}^{T} e^{X_{1}w_{1}} $. Putting it all together we therefore get</p><p>$$ \frac{\delta S_{2}}{\delta w_{1}}=\frac{0*(e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}}) - e^{X_{1}w_{2}}*X_{1}^{T}e^{X_{1}w_{1}}<br>}{(e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}})^{2}} =\frac{-X_{1}^{T}*e^{X_{1}w_{2}}*e^{X_{1}w_{1}}<br>}{(e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}})^{2}} $$</p><p>Due to matrix calculus (and the fact that we always want our derivatives to have the same shape as what we differentiate after), $ X_{1}^{T} $ was transposed. At this point, we can take a hard look at the equation and see that the original softmax function can be found in its differentiation. This becomes more apparent when we re-organize the fraction a bit. Since $ w_{3} $ is not in the nominator of our original differentiation, it behaves just like $ w_{1} $ and we can easily write down its final derivative as well.</p><p>$$ \frac{\delta S_{2}}{\delta w_{1}} = -X_{1}^{T} * \frac{e^{X_{1}w_{2}}}{(e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}})} * \frac{e^{X_{1}w_{1}}}{(e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}})} = -X_{1}^{T} * S_{2} * S_{1} $$</p><p>$$ \frac{\delta S_{2}}{\delta w_{3}} = -X_{1}^{T} * S_{2} * S_{3} $$</p><p>As you might have guessed by now, we can not do the same with $ w_{2} $ since it is our ground truth, due to the fact that image one ($ n = 1 $) shows a dog ($ y = 2 $). Therefore the applied quotient rule looks a little bit different in the nominator, compared to what we did before.</p><p>$$ \frac{\delta S_{2}}{\delta w_{2}} = \frac{e^{X_{1}w_{2}}}{e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}}}\frac{\delta}{\delta w_{2}} = \frac{X_{1}^{T}e^{X_{1}w_{2}}*(e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}})-e^{X_{1}w_{2}}*X_{1}^{T}e^{X_{1}w_{2}}}{(e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}})^{2}} $$</p><p>$$ = X_{1}^{T}*<br>\frac{e^{X_{1}w_{2}}}{e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}}} -<br>X_{1}^{T}*<br>\frac{e^{X_{1}w_{2}}}{e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}}} *<br>\frac{e^{X_{1}w_{2}}}{e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}}} = X_{1}^{T}*S_{2} * (1 - S_{2})$$</p><p>Finally, we can see that there are two different solutions for the differentiation of the softmax function wrt the weights. This difference depends ultimately on the question of whether the differentiation is wrt the current ground truth ($ y $) or not. Let us introduce the variable $ j $ to indicate labels that are <strong>not</strong> the ground truth ($ j \neq y $). In our example regarding the first image we thus have $ y = 2 $ and $ j = 1, 3 $. With this new variable, we can generalize our previously computed derivatives. And since these equations hold not only regarding the first but all input images, we can put $ n $ back into place.</p><p>$$ \frac{\delta S_{y}}{\delta w_{j}} = -X_{n}^{T} * S_{y} * S_{j} $$</p><p>$$ \frac{\delta S_{y}}{\delta w_{y}} = X_{n}^{T}*S_{y} * (1 - S_{y}) $$</p><h3 id="and-conquer-the-log-loss">... and conquer (the log-loss)</h3><p>Differentiating the log-loss is a lot easier compared to the softmax function. All you need to know here is <a href="https://www.google.com/search?q=how+to+differentiate+a+logarithm">how to differentiate the logarithm</a> and the <a href="https://en.wikipedia.org/wiki/Chain_rule">chain rule</a>. Furthermore please do not panic when you see the summation sign ($ \sum $) in the equation, it just wants to play. Also, we do not have to distinguish between $ S_{y} $ and $ S_{j} $ since there is only one $ S $ in the equation. Thus, the differentiation is valid for both cases.</p><p>$$ \frac{\delta L}{\delta S}=-\frac{1}{N}\sum_{n=1}^{N}log(S)\frac{\delta}{\delta S} = -\frac{1}{N}\sum_{n=1}^{N} \frac{1}{S} = -\frac{1}{N} * (\frac{1}{S} + ... + \frac{1}{S}) = -\frac{1}{N} * N * \frac{1}{S} = -\frac{1}{S}$$</p><h3 id="putting-it-all-together">Putting it all together</h3><p>As discussed before we were able to split the softmax and log-loss differentiation due to calculus being our friend. Looking now at both cases ($ j = y $) and ($ j \neq y $) we can easily compute the final solution to our initial differentiation problem.</p><p>$$ \frac{\delta L}{\delta w_{y}} = \frac{\delta L}{\delta S_{y}} * \frac{\delta S_{y}}{\delta w_{y}} = -\frac{1}{S_{y}} * X_{n}^{T} * S_{y} * (1 - S_{y}) = - X_{n}^{T} * (1 - S_{y}) $$</p><p>$$ \frac{\delta L}{\delta w_{j}} = \frac{\delta L}{\delta S_{j}} * \frac{\delta S_{j}}{\delta w_{j}} = -\frac{1}{S_{j}} * (-X_{n}^{T}) * S_{y} * S_{j} = X_{n}^{T} * S_{j} $$</p><h3 id="code-over-all">Code over all</h3><!--kg-card-begin: html--><pre class="line-numbers language-python"><code>import numpy as np
+from typing import Tuple
+
+def softmax_loss_log(W: np.ndarray, X: np.ndarray, y: np.ndarray) -&gt; Tuple[float, np.ndarray]:
+    &quot;&quot;&quot;
+    A loss function consisting of a softmax layer that is fed into the log-loss.
+    Loss as well as the weight derivatives are returned.
+    :param W: Weight matrix of shape (D x C)
+    :param X: Data matrix of shape (N X D)
+    :param y: Vector of labels (N x 1)
+    :return: Tuple of loss value and weight derivatives of shape (D x C).
+    &quot;&quot;&quot;
+    N, _ = X.shape
+    
+    y_prediction = X @ W  # (N x C)
+    y_prediction -= np.max(y_prediction, axis=1, keepdims=True)  # for numerical stability
+    
+    S_nominator = np.exp(y_prediction)
+    S_denominator = np.exp(y_prediction).sum(axis=1, keepdims=True)
+    S = S_nominator / S_denominator
+
+    loss = -(1/N) * np.sum(
+        np.log(
+            S[np.arange(N), y]
+        )
+    )
+
+    S[np.arange(N), y] -= 1
+    dW = (X.T @ S) / N
+
+    return loss, dW
+</code></pre><!--kg-card-end: html--><h3 id="update-code-implementation-details">Update: Code implementation details</h3><p>Most of the implementation is relatively straightforward, doing exactly what we described previously, like computing the prediction of our ANN (line 15), the softmax matrix (18-20), or the loss (line 22-26). But there are also a few tricks in place I will explain a bit more in detail.</p><h4 id="numerical-stability">Numerical Stability</h4><pre><code class="language-python">y_prediction -= np.max(y_prediction, axis=1, keepdims=True)</code></pre><p>In line 16 we subtract the maximum value of the prediction (<strong>row-wise</strong>). Remember that the prediction has the dimension $(N \times C)$, and we did not apply softmax to it, yet. Thus, the values here can be (literally) anything. By subtracting the maximum of each row, we make sure that the biggest value is always 0. Thus we moved the range of possible values to $(-\infty, 0]$. As a result, when we apply the softmax algorithm next, our denominator (line 19) is guaranteed to be at least 1, so we will not run into issues like dividing by zero. For more details <a href="https://stackoverflow.com/a/42606665">click here</a>.</p><h4 id="softmax-values-for-j-y">Softmax values for (j = y)</h4><pre><code class="language-python">S[np.arange(N), y] -= 1
+dW = (X.T @ S) / N</code></pre><p>In lines 28-29 we subtract all values where our prediction is the correct class, by 1. Afterward, we compute the derivatives wrt the weight matrix. If you look at our previously derived formulae (just above the code block) for the loss wrt the weights ($\frac{\delta L}{\delta w_{j}}$), you can see that this is exactly what we are doing in the code (ignore the division by N, for now). But as we know, $\frac{\delta L}{\delta w_{y}}$ (the loss wrt the weights of the <strong>correct</strong> prediction class) needs to be treated differently. To adjust for this difference, we do the subtraction in line 28.</p><p>$$ \frac{\delta L}{\delta w_{j}} = &#xA0;X_{n}^{T} * S_{j} = &#xA0;X_{n}^{T} * (S_{y} - 1) = X_{n}^{T} * S_{y} - X_{n}^{T} = - X_{n}^{T} * (1 - S_{y}) = \frac{\delta L}{\delta w_{y}} $$</p><h4 id="division-by-n">Division by N</h4><pre><code class="language-python">dW = (X.T @ S) / N</code></pre><p>In line 29 we also divide by N (the number of samples). If you look at the dimensions of the multiplication of $X^T * S$, you see that it is $(D \times N) * (N \times C) = (D \times C)$. We can always do this multiplication, independent of the number of samples (the size of N). But does this mean, that N does not influence the values of dW? The answer is no. Surely the values in dW will increase when the number of samples will increase. To counter this, we divide by N.</p><h3 id="synonyms">Synonyms</h3><p>MCC - multiclass classification<br>wrt - with respect to<br></p><p></p><h3 id><br></h3>]]></content:encoded></item><item><title><![CDATA[What data is good data?]]></title><description><![CDATA[What data do you need in order to train your machine learning (ML) model? What requirements need to be fulfilled in order to consider data good and also point out some counterexamples. In this post, I want to answer these questions.]]></description><link>http://frank690.github.io/what-data-is-good-data/</link><guid isPermaLink="false">615f0e4da7f64a12902f8a11</guid><category><![CDATA[data-science]]></category><category><![CDATA[machine-learning]]></category><category><![CDATA[theory]]></category><dc:creator><![CDATA[Frank Eschner]]></dc:creator><pubDate>Mon, 04 Oct 2021 20:30:48 GMT</pubDate><media:content url="https://images.unsplash.com/photo-1590247813693-5541d1c609fd?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDJ8fHdhcmVob3VzZXxlbnwwfHx8fDE2MzMzNzk2OTU&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" medium="image"/><content:encoded><![CDATA[<img src="https://images.unsplash.com/photo-1590247813693-5541d1c609fd?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDJ8fHdhcmVob3VzZXxlbnwwfHx8fDE2MzMzNzk2OTU&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" alt="What data is good data?"><p>What data do you need to train your machine learning (ML) model? What requirements need to be fulfilled to consider data good? What are some counterexamples? In this post, I want to answer these questions.</p><p><strong>TL;DR</strong>: Good data has to fulfill multiple requirements. Firstly, it needs to have a pattern that solves the problem you want to tackle. Secondly, the quality of the data needs to be high enough. Thirdly, the amount of data you have needs to be sufficient (but generally speaking: having more data is always good). </p><p>As stated <a href="../what-is-learning">before</a>, ML helps you to find a (to you unknown) function/pattern within your data. For your data to be &quot;good data&quot; it has to fulfill some requirements. </p><h3 id="good-data-needs-a-pattern-within">Good data needs a pattern within</h3><p>First and foremost your data has to contain a pattern that is related to the problem you want to solve. If there is no pattern at all, you are out of luck. But how can you know if there is a pattern within your data? It depends on the kind of task you want to solve. Let me give you some quick examples.</p><h4 id="example-1-counting-trucks">Example 1: Counting trucks</h4><p>You are given the task to write an algorithm that counts the number of trucks that are passing by a certain part of a highway. What is good data? Good data would for example be a camera that records the traffic and which you could use to find a pattern of what a truck looks like. If you would find one, you could just use that pattern to automatically count a truck as soon as it is recorded by the camera. What is bad data? Bad data would for example be the course of hundreds of thousands of games of chess that top-level players played. In such data, you would hardly find a pattern that can predict the number of trucks that are passing by a certain point on a highway, and therefore it is bad data (for the task you want to solve).</p><h4 id="example-2-playing-games">Example 2: Playing Games</h4><p>You are given the task to write an algorithm that can beat world-class players (humans) in their favorite game (e.g. GO, Chess, Dota, ...). &#xA0;What data is good data? Good data would be the course of hundreds of thousands of games, including each move that was made at what time, the results of that move, and information about who won and who lost. What is bad data? Bad data would be a (live) stream of a traffic camera that just shows a highway and the vehicles passing by because your algorithm would most likely not figure out how to play chess just by looking at the traffic (jams) on a highway.</p><p>In the examples I just presented to you, it is quite obvious that the bad data is actually bad because it has no relation to the task/problem you want to solve. But this is typically not the case.</p><h4 id="example-3-machine-health">Example 3: Machine Health</h4><p>You are employed by a company that uses drop-forges to produce various car parts. These machines need to be continuously maintained in order to keep them functioning well. Your task is to train an ML model to predict the current health of the machine to adjust the frequency of the maintenance cycle. A lower maintenance frequency results in a lower machine downtime (which equals more productivity) but it increases the risk of the machine breaking and vice versa. A single drop forge is equipped with various sensors measuring a big variety of signals (e.g. motor currents, temperatures, pressures, speeds, frequencies, number of parts forges, ...). What signals (data) should you use to correctly predict the current health of the machine? Maybe all of them have a hidden relationship with the health state of the machine. Maybe just some. Or maybe even none of them. Figuring out questions like this is rarely a trivial task, but it is most definitely a part of the process of developing an ML solution to your problem.</p><h3 id="good-data-needs-quality">Good data needs quality</h3><p>In the &quot;Counting Trucks&quot; example, the camera that provides the data of the traffic for you, could have a dirty lens or be blinded by the sun at certain times of the day. Thus, drastically reducing the <strong>quality</strong> of your data until the point that you can hardly distinguish or recognize vehicles, at all. In the &quot;machine health&quot; example, the various signals may not be in perfect time synchronization, or the electrical field of a power cable might interfere with some analog signals of other cables nearby. What I want to illustrate with these examples is, that rarely any data is perfect. Especially data that is recorded by any kind of (real world) sensor can be falsified by a variety of things. In the majority of problems you have to solve as a data scientist, you will not have the opportunity to make a wish for a new sensor or a new signal (and wait until you have collected enough data). You are simply left to work with what you got in the first place. In order to get the best quality out of your given data, preprocessing is the key. <em>&quot;For most practical applications, the original input variables are typically preprocessed to transform them into some new space of variables where it is hoped, the pattern recognition problem will be easier to solve.<em>&quot;</em></em> [CMB]</p><h3 id="good-data-needs-disk-space">Good data needs disk space</h3><p>For your (supervised) ML algorithm to learn/find a pattern, you need a sufficient amount of data that it can learn from. Imagine your algorithm wants to learn how to play chess (and do that on a super-human skill level), but you only have data of a single match that it can learn from. Even if that single match has a good quality (e.g. the players are highly skilled and the data has no errors), your model would still just have learned a single opening followed by a few strategies the players applied according to what moves their counterparts performed. The vast majority of what strategies a player needs to know to play on a world-class level would just be completely unknown to your model because it never saw them (at least in classical <a href="https://en.wikipedia.org/wiki/Supervised_learning">supervised learning</a>). This analogy can be extended to the problem you want to solve, but in general, one can say two things. First, having more data is better than not having more data. Second, the harder your problem is, the more data you probably need to solve it.</p><h3 id="acronyms">Acronyms</h3><p>ML - Machine Learning</p><h3 id="sources">Sources</h3><p>[CMB] - Pattern recognition and machine learning, Christopher M. Bishop</p><h3 id="books">Books</h3><!--kg-card-begin: html--><div class="bookshelf">
+    <a target="_blank" rel="noopener noreferrer" href="https://www.microsoft.com/en-us/research/people/cmbishop/prml-book/"><img alt="What data is good data?" src="http://frank690.github.io/content/images/2022/01/pattern_recognition_christopher_bishop.jpg"></a>
+</div><!--kg-card-end: html-->]]></content:encoded></item><item><title><![CDATA[What is (machine) learning?]]></title><description><![CDATA[In this post I want to share my thoughts about what machine learning is, why would we even need that, what data has to do with this and how we would even know if a machine actually learned something.]]></description><link>http://frank690.github.io/what-is-learning/</link><guid isPermaLink="false">615f0e4da7f64a12902f8a10</guid><category><![CDATA[machine-learning]]></category><category><![CDATA[data-science]]></category><category><![CDATA[theory]]></category><dc:creator><![CDATA[Frank Eschner]]></dc:creator><pubDate>Wed, 18 Aug 2021 18:16:58 GMT</pubDate><media:content url="https://images.unsplash.com/photo-1491309055486-24ae511c15c7?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDF8fHJlYWR8ZW58MHx8fHwxNjI5MzA5MDQ3&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" medium="image"/><content:encoded><![CDATA[<img src="https://images.unsplash.com/photo-1491309055486-24ae511c15c7?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDF8fHJlYWR8ZW58MHx8fHwxNjI5MzA5MDQ3&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" alt="What is (machine) learning?"><p>In this post, I want to share my thoughts about what machine learning (ML) is, why we need it, and what data has to do with it.</p><p><strong>TL;DR</strong>: Machines use algorithms to train a mathematical model. This process is called machine learning. We need ML in order to find solutions for problems we can not pin down ourselves (by hand), mostly because they are too complex. The problems that need to be addressed are presented as data and the algorithm tries to find a pattern within said data.</p><h3 id="preface">Preface</h3><p>In a world where everyone knows how to say machine learning but not even half of the very same people know what it actually means, it is always a good habit to ask yourself what machine learning actually means. What a machine is, is more or less clear. But when it comes to the definition of learning, things can get a bit tricky. Unfortunately, <em>&quot;there are many definitions (...) of learning&quot;</em> [PJA] but one of the most commonly used definitions can be found in <a href="https://en.wikipedia.org/wiki/Learning">Wikipedia&apos;s article about learning</a>: <em>&quot;Learning is the process of acquiring new understanding, knowledge, (...). The ability to learn is possessed by humans, animals, and some machines; (...). Some learning is immediate, induced by a single event, but much skill and knowledge accumulate from repeated<strong> </strong>experiences.&quot;</em></p><h2 id="what-is-machine-learning">What is machine learning?</h2><p>Machine learning is a process that requires a machine to gain a new understanding. In order to do so, it has to accumulate knowledge through repeated experiences. At this point, you could (rightfully) ask: <em>&quot;But how do we let a machine experience something, at all?&quot;.</em> After all, it seems hard to understand how you would want to teach a computer anything. A human learns through his senses that touching fire or forgetting that one meal in the fridge you definitely wanted to eat the next day, might turn out to be a bad idea. But if you spin this thought a bit further, you might also realize that learning through your senses is not the only feasible way of learning something. Reading, for example, is a common way for people to learn something. And what does it take for a machine to read something? The answer is data. Machines do not learn through any senses (yet), but by data, they read and process. And just like you might read <a href="https://isotropic.org/papers/chicken.pdf">that one paper</a> the 20th time, a machine can read that one block of 1024 data samples, over and over again. Unfortunately, this process is far from being guaranteed to succeed. To illustrate that, I will use an analogy inspired by [LFD]. </p><h3 id="memorizing-vs-generalizing">Memorizing vs. Generalizing</h3><p>Imagine being in university and enrolling in two different (and for the sake of argument, also unrelated) math classes. Each class is run by a different professor. Both professors are holding multiple lectures a week, providing you with proper course material and also handing you, weekly exercise tasks. You follow the lectures, study the materials of both classes and work on the given exercises. By the end of the lectures, you and your fellow students are ready to take the final exams. Even though the course materials and exercises were of similar difficulty and quality, the exams are very different. For one course, you face a rather challenging exam that requires you to interpolate between the exercises you practiced during the semester and also apply the knowledge that was taught to you in the lectures. You struggle, but you somewhat manage to </p><h2 id="why-do-i-need-a-machine-to-learn-something">Why do I need a machine to learn something?</h2><p>Well, it depends on the (mathematical) task you want to solve. If you can solve it with pen and paper and your trusty ol&apos; calculator, then you are fine anyway. But chances are that you use a computer to do some computations for yourself. If you know what kind of computations that should be (i.e. you know the formulas you want your computer to solve for you), then you are also just fine. But if the latter is not the case; if you have a problem that you can just not <em>put into formulas</em> yourself, ML is here to the rescue. It helps you to find and solve said formula within your data. </p><p></p><h2 id="examples-of-when-not-to-use-ml">Examples of when (not) to use ML</h2><p>Using ML is a bad idea when ...<br>- you want to replace your perfectly fine working <a href="https://en.wikipedia.org/wiki/PID_controller">PID-Controller</a>.<br>- <a href="https://twitter.com/geraldmellor/status/712880710328139776?s=20">you want it to learn how to behave while feeding regular online-user behavior to it</a>.<br>- <a href="https://en.unesco.org/artificial-intelligence/ethics/cases">you want it to make ethically correct, righteous, or fair decisions</a>.</p><p>Using ML is a good idea when ...<br>- <a href="https://www.washington.edu/news/2020/12/15/a-i-model-shows-promise-to-generate-faster-more-accurate-weather-forecasts/">you want to forecast the weather</a>.<br>- <a href="http://yann.lecun.com/exdb/mnist/">you want to recognize hand-written text</a>.<br>- <a href="https://www.deepl.com/de/translator">you want to translate something into another language</a>.<br>- <a href="https://arxiv.org/pdf/1910.07738.pdf">you want to make cars drive autonomously</a>.<br>- <a href="https://www.nytimes.com/2018/07/08/business/china-surveillance-technology.html">you want to install a nationwide super-villain surveillance system that tracks everyone</a>.<br>- <a href="https://chesspulse.com/is-magnus-carlsen-better-than-a-computer-2/">you need to beat Magnus Carlsen at chess</a>.</p><p>Generally speaking, machines used to be good at things we (humans) are bad at (e.g. doing a lot of calculations in a very short amount of time) but, vice versa, were bad at things we were good at (e.g. recognizing things we see). But especially the latter paradigm is shrinking each year ML advances. Thanks to ML, we are no longer stuck teaching our machines the rules of the game (how given input data correlates with a desired output/prediction/decision...) when we do not know the rules ourselves. We just let the machine figure it out by providing a sufficient amount of <a href="../what-data-is-good-data/">good data</a>.</p><!--kg-card-begin: html--><center><img src="http://frank690.github.io/content/images/2021/08/machine_learning.png" class="kg-image" alt="What is (machine) learning?" loading="lazy"><figcaption>https://xkcd.com/1838/</figcaption></center><!--kg-card-end: html--><h3 id="acronyms">Acronyms</h3><p>ML - Machine Learning</p><h3 id="sources">Sources</h3><p>[PJA] - <a href="http://pls.fkip.unej.ac.id/wp-content/uploads/sites/6/2017/01/INTERNATIONAL-DICTIONARY-OF-ADULT-AND-CONTINUING-EDUCATION.pdf">http://pls.fkip.unej.ac.id/wp-content/uploads/sites/6/2017/01/INTERNATIONAL-DICTIONARY-OF-ADULT-AND-CONTINUING-EDUCATION.pdf</a></p><p>[LFD] - Learning from data, Yaser S. Abu-Mostafa et. al.</p><h3 id="books">Books</h3><!--kg-card-begin: html--><div class="bookshelf">
+    <a target="_blank" rel="noopener noreferrer" href="https://work.caltech.edu/telecourse"><img alt="What is (machine) learning?" src="http://frank690.github.io/content/images/2021/08/learning_from_data_o.jpg"></a>
+</div><!--kg-card-end: html-->]]></content:encoded></item><item><title><![CDATA[Setting a seed]]></title><description><![CDATA[Part 1 of a series about creating your very own artificial neural network (ANN) by hand. We are going to start as simple as it can get: Creating a baby neural network that can barely solve problems each of us could easily solve by hand. ]]></description><link>http://frank690.github.io/diy-neural-network-part-1/</link><guid isPermaLink="false">615f0e4da7f64a12902f8a0f</guid><category><![CDATA[ANN]]></category><category><![CDATA[DIY]]></category><category><![CDATA[python]]></category><category><![CDATA[neural-network-series]]></category><dc:creator><![CDATA[Frank Eschner]]></dc:creator><pubDate>Tue, 17 Aug 2021 18:28:45 GMT</pubDate><media:content url="https://images.unsplash.com/photo-1505235687559-28b5f54645b7?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDF8fHNlZWRsaW5nfGVufDB8fHx8MTY0MTIzODkzNg&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" medium="image"/><content:encoded><![CDATA[<img src="https://images.unsplash.com/photo-1505235687559-28b5f54645b7?crop=entropy&amp;cs=tinysrgb&amp;fit=max&amp;fm=jpg&amp;ixid=MnwxMTc3M3wwfDF8c2VhcmNofDF8fHNlZWRsaW5nfGVufDB8fHx8MTY0MTIzODkzNg&amp;ixlib=rb-1.2.1&amp;q=80&amp;w=2000" alt="Setting a seed"><p>This is part 1 of a series about creating your very own artificial neural network (ANN) by hand. We are going to start as simple as it can get: Creating a baby neural network that can barely solve problems each of us could easily solve by hand. In each part of this series, we will continue to improve the capabilities of our self-made ANN and try to tackle more challenging problems with it.</p><p><strong>TL;DR</strong>: <a href="https://github.com/frank690/sffresch-code/blob/main/diy-neural-network-part-1/code.ipynb">Take me to the code</a>.</p><h3 id="the-problem">The Problem</h3><p>Consider having three light bulbs. The first two of them (A and B) can be turned either ON (1) or OFF (0) <em>independently</em>. The state of the third light bulb (C) depends on the first two (A and B). Try to figure out how the underlying systematic works by clicking on A and/or B as much as you like.</p><!--kg-card-begin: html--><div class="lightbulbs">
+    <div class="lightbulb">
+        <img id="lightbulb_A" class="input_lightbulb" state="off" onclick="input_lightbulb_clicked(this.id)" src="http://frank690.github.io/content/images/2021/08/light-bulb-off.png" alt="Setting a seed">
+    	<span class="caption">A</span>
+	</div>
+	<div class="lightbulb">
+        <img id="lightbulb_B" class="input_lightbulb" state="off" onclick="input_lightbulb_clicked(this.id)" src="http://frank690.github.io/content/images/2021/08/light-bulb-off.png" alt="Setting a seed">
+    	<span class="caption">B</span>
+	</div>
+	<div class="lightbulb">
+        <img id="target_lightbulb" src="http://frank690.github.io/content/images/2021/08/light-bulb-on.png" alt="Setting a seed">
+    	<span class="caption">C</span>
+	</div>
+</div><!--kg-card-end: html--><p>The presented problem is known as the <a href="https://en.wikipedia.org/wiki/XNOR_gate">XNOR gate</a>. If A and B are both either 0 or 1, C will be 1. Otherwise, C will be 0. The corresponding input data (the states of A and B) will be stored in the variable X and the output data (the state of C) as y.</p><h3 id="generating-more-data">Generating more data</h3><p><s>Unfortunately,</s> Luckily, the data we got is a bit noisy on the input side and we do not get a clean 0 or 1 for the states of A and B, but rather a value around (!) 0 or 1. Since it is very unlikely that two samples are going to be the very same, we can now easily draw way more data than the initial four possible states (of A and B).</p><pre><code class="language-python">import numpy as np
+from typing import Tuple, Dict
+
+def generate_data(N: int) -&gt; Tuple[np.ndarray, np.ndarray]:
+    &quot;&quot;&quot;
+    Original code credits to Prof. Dr. Stefan Harmeling
+    
+    Generate a data for training our linear model.
+    :param N: number of samples multiplier.
+    :return: tuple of x and y data as numpy ndarrays.
+    &quot;&quot;&quot;
+    X = np.repeat(np.array([[0, 0], [0, 1], [1, 0], [1, 1]]), N, axis=0)
+    X = X + np.random.randn(4 * N, 2) * 0.2
+    y = np.repeat([0, 1, 1, 0], N)
+    y = np.reshape(y, (len(y), 1))
+
+    return X, y</code></pre><p>Using the generate_data function gets us some nice training and testing sets to feed to our ANN.</p><pre><code class="language-python">X_train, y_train = generate_data(N=100)
+X_test, y_test = generate_data(N=50)</code></pre><figure class="kg-card kg-image-card"><img src="http://frank690.github.io/content/images/2022/01/xnor_problem-4.svg" class="kg-image" alt="Setting a seed" loading="lazy"></figure><h3 id="initialize-weights-and-biases">Initialize weights and biases</h3><p>Since we now know what our data looks like, let us define a simple ANN with one layer each for the input, hidden, and output layers. The input layer will have two neurons (corresponding to the input data A and B) and the output layer will have one neuron (C). We choose the number of hidden neurons to be 3.</p><p>Side note: <br>There is no general answer to the question of choosing how many hidden layers and neurons per (hidden) layer one should use. In my personal experience, this highly depends on multiple factors. To name just a few, one is of course the complexity of the problem that the ANN should try to solve. Another one is the computing time one can spend and the capabilities of the machine that trains the ANN. Generally speaking, one should stick with <a href="https://en.wikipedia.org/wiki/Occam&apos;s_razor">Occam&apos;s razor</a>: If you have two similarly performing models, choose the simpler one.</p><pre><code class="language-python">weights = dict()
+biases = dict()
+
+weights[1] = 2 * np.random.random((2,3)) - 1
+biases[1] = np.zeros(3)
+
+weights[2] = 2 * np.random.random((3,1)) - 1
+biases[2] = np.zeros(1)</code></pre><h3 id="forward-propagation">Forward propagation</h3><p>Given some input data, compute the resulting prediction (hypothesis). We introduce non-linearity to our ANN by using the well-known <a href="https://en.wikipedia.org/wiki/Sigmoid_function">sigmoid function</a> (and its derivative).</p><pre><code class="language-python">def sigmoid(X: np.ndarray) -&gt; np.ndarray:
+    &quot;&quot;&quot;
+    The sigmoid function will return 0 for every x &lt;&lt; 0 and 1 for every x &gt;&gt; 0.
+    :param X: data to transform via sigmoid function:
+    :return: transformed data that lies between 0 and 1.
+    &quot;&quot;&quot;
+    return 1 / (1 + np.exp(-X))</code></pre><pre><code class="language-python">def sigmoid_derivative(X: np.ndarray) -&gt; np.ndarray:
+    &quot;&quot;&quot;
+    The derivative of the sigmoid function.
+    :param X: the data points for that the slope of the sigmoid function should be returned.
+    :return: the slope of the sigmoid function at every given X.
+    &quot;&quot;&quot;
+    sig = sigmoid(X)
+    return sig * (1 - sig)</code></pre><p>Side note:<br>Instead of computing the resulting values for one sample at a time (via for-loops), I prefer to use the vectorized version of the same computations due to cleaner code and faster computations.</p><pre><code class="language-python">z = dict()
+a = dict()
+
+z[1] = X @ weights[1] + biases[1]
+a[1] = sigmoid(z[1])
+
+z[2] = a[1] @ weights[2] + biases[2]
+a[2] = sigmoid(z[2])
+
+h = a[2]</code></pre><h3 id="computing-the-loss">Computing the loss</h3><p>Since we are trying to solve a binary classification problem (predicting if the result is either 0 or 1), we will use the <a href="https://en.wikipedia.org/wiki/Cross_entropy#Cross-entropy_loss_function_and_logistic_regression">cross-entropy loss function</a>.</p><pre><code class="language-python">def cross_entropy_loss(
+    h: np.ndarray, y: np.ndarray
+) -&gt; np.ndarray:
+    &quot;&quot;&quot;
+    Compute the cross entropy loss for the given hypothesis (h) in contrast to the true results (y).
+    :param h: Hypothesis of the NN to compare with y.
+    :param y: True results of the data.
+    :return: Cost/Loss of the current hypothesis.
+    &quot;&quot;&quot;
+    return -(1/y.size) * ((y.T @ np.log(h)) + ((1 - y.T) @ np.log(1 - h)))</code></pre><pre><code class="language-python">def cross_entropy_derivative(
+    h: np.ndarray, y: np.ndarray
+) -&gt; np.ndarray:
+    &quot;&quot;&quot;
+    Compute the derivative of the cross entropy loss.
+    :param h: Hypothesis of the NN to compare with y.
+    :param y: True results of the data.
+    :return: Derivative of the cross entropy loss with the current hypothesis.
+    &quot;&quot;&quot;
+    return -(y // h) + ((1 - y) // (1 - h))</code></pre><h3 id="backpropagation">Backpropagation</h3><p>After computing the prediction of our neural network (also known as the hypothesis), we now work our way back(wards) to the weights and biases. This is done by looking at the loss and computing the gradients of each of our previously computed values.</p><pre><code class="language-python">dz = dict()
+da = dict()
+
+da[2] = cross_entropy_derivative(h=h, y=y)
+dz[2] = da[2] * sigmoid_derivative(z[2])
+
+da[1] = dz[2] @ weights[2].T
+dz[1] = da[1] * sigmoid_derivative(z[1])</code></pre><h3 id="gradient-descent">Gradient descent</h3><p>To update our weights and biases so that the next prediction of our neural network will be a bit better than the previous one, we use <a href="https://en.wikipedia.org/wiki/Gradient_descent">gradient descent</a>. For simplicity, let us choose a learning rate of 1 (and thus omit it in the code).</p><pre><code class="language-python">weights[1] -= (X.T @ dz[1]) * (1 / y.size)
+biases[1] -= np.mean(dz[1], axis=0)
+
+weights[2] -= (a[1].T @ dz[2]) * (1 / y.size)
+biases[2] -= np.mean(dz[2], axis=0)</code></pre><h3 id="putting-it-all-together">Putting it all together</h3><p>Since we are descending one step at a time towards a minimum (due to the way how gradient descent works), we repeat the process of forward- and backpropagation through the network a couple of times (here, 1000 times). Putting this information plus every previous step into a single function called fit, our ANN is ready to go.</p><pre><code class="language-python">def fit(X: np.ndarray, y: np.ndarray) -&gt; Tuple[Dict, Dict]:
+    &quot;&quot;&quot;
+    Create a simple ANN and train it on the given binary classification data.
+    :param X: Input data.
+    :param y: Output data.
+    :return: Weights and biases as dictionaries.
+    &quot;&quot;&quot;
+    weights = dict()
+    biases = dict()
+
+    weights[1] = 2 * np.random.random((2,3)) - 1
+    biases[1] = np.zeros(3)
+    weights[2] = 2 * np.random.random((3,1)) - 1
+    biases[2] = np.zeros(1)
+
+    a = dict()
+    z = dict()
+    da = dict()
+    dz = dict()
+
+    for iteration in range(1000):
+        z[1] = X @ weights[1] + biases[1]
+        a[1] = sigmoid(z[1])
+        z[2] = a[1] @ weights[2] + biases[2]
+        a[2] = sigmoid(z[2])
+        h = a[2]
+
+        loss = cross_entropy_loss(h=h, y=y)
+        print(f&quot;Loss ({iteration}): {loss[0][0]}&quot;)
+
+        da[2] = cross_entropy_derivative(h=h, y=y)
+        dz[2] = da[2] * sigmoid_derivative(z[2])
+        da[1] = dz[2] @ weights[2].T
+        dz[1] = da[1] * sigmoid_derivative(z[1])
+
+        weights[1] -= (X.T @ dz[1]) * (1 / y.size)
+        biases[1] -= np.mean(dz[1], axis=0)
+
+        weights[2] -= (a[1].T @ dz[2]) * (1 / y.size)
+        biases[2] -= np.mean(dz[2], axis=0)
+
+    return weights, biases</code></pre><h3 id="training">Training</h3><p>Using our previously created training set, we can run the fit function and train our ANN. In return, we will get the fitted weights and biases that represent the <em>brain</em> of our ANN.</p><pre><code class="language-python">w, b = fit(X=X_train, y=y_train)</code></pre><pre><code class="language-shell">Loss (0): 0.701788446507631
+Loss (1): 0.6932204170602805
+Loss (2): 0.6926989143616228
+Loss (3): 0.6925255938589576
+...
+Loss (997): 0.08240692560029927
+Loss (998): 0.08234153724021534
+Loss (999): 0.08227351128655165</code></pre><h3 id="predicting">Predicting</h3><p>To predict the output of data our ANN has not seen before, we need a dedicated predict function that takes the fitted weights and biases as input parameters.</p><pre><code class="language-python">def predict(w: Dict, b: Dict, X: np.ndarray) -&gt; np.ndarray:
+    &quot;&quot;&quot;
+    Use the given weights (w) and biases (b) to make a prediction for the given input data (X).
+    :param w: Dictionary of weight matrices.
+    :param b: Dictionary of bias vectors.
+    :param X: Input data to make predictions on.
+    :return: An numpy array of predictions for every sample in X.
+    &quot;&quot;&quot;
+    z = dict()
+    a = dict()
+    
+    z[1] = X @ w[1] + b[1]
+    a[1] = sigmoid(z[1])
+    z[2] = a[1] @ w[2] + b[2]
+    a[2] = sigmoid(z[2])
+    
+    return a[2]</code></pre><h3 id="results">Results</h3><p>Looking at the course of the loss, we can see that our ANN was able to fit the given data in such a way, that the resulting loss (for the training data) decreased significantly. Plotting the testing dataset together with the decision boundaries, one can see that our ANN successfully learned to classify data of the XNOR problem (nearly always) correctly. </p><h3 id="update">Update</h3><p>While learning the beautiful language of <a href="https://www.rust-lang.org/">rust</a>, I re-programmed this baby neural network and thought to myself, that it would be a nice idea to see the evolution of the decision boundaries in a gif. After a couple of hours of fiddling around with different python packages, <a href="https://imageio.readthedocs.io/en/stable/reference/core_v3.html">imageio v3</a> finally allowed me to produce what I had in mind.</p><!--kg-card-begin: html--><center><img src="../content/images/2022/12/decision_boundaries-1.gif" alt="Setting a seed"></center><!--kg-card-end: html--><h3 id="what-is-next">What is next?</h3><p>Now having a baby ANN at our fingertips, there are plenty of things to implement and improve to solve more challenging problems. This includes introducing <a href="https://en.wikipedia.org/wiki/Stochastic_gradient_descent">stochastic gradient descent</a>, different kinds of regularization methods, <a href="https://golden.com/wiki/Nesterov_momentum">Nesterov momentum</a>, <a href="https://arxiv.org/abs/1502.01852">more sophisticated weight + bias initialization</a>, <a href="https://ml-cheatsheet.readthedocs.io/en/latest/loss_functions.html">more loss functions</a>, <a href="https://ml-cheatsheet.readthedocs.io/en/latest/activation_functions.html">more activation functions</a>, etc. But besides the mathematical perspective, there is also a lot of room for improving the code quality.</p><h3 id="acronyms">Acronyms</h3><p>ANN - Artificial Neural Network</p>]]></content:encoded></item></channel></rss>

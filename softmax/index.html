@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Softmax</title>
+    <link rel="stylesheet" href="../assets/built/screen.css%3Fv=5c96eb8187.css">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Open+Sans:400,400i,700,700i%7CDosis:600,700&amp;subset=latin-ext">
+        
+    <meta name="description" content="In this post, I want to introduce the softmax function (also known as the normalized exponential function), outline its use case, and present a python implementation that will come in handy in the development of our artificial neural network." />
+    <link rel="canonical" href="index.html" />
+    <meta name="referrer" content="no-referrer-when-downgrade" />
+    <link rel="amphtml" href="amp/index.html" />
+    
+    <meta property="og:site_name" content="sffresch" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Softmax" />
+    <meta property="og:description" content="In this post, I want to introduce the softmax function (also known as the normalized exponential function), outline its use case, and present a python implementation that will come in handy in the development of our artificial neural network." />
+    <meta property="og:url" content="http://frank690.github.io/softmax/" />
+    <meta property="og:image" content="http://frank690.github.io/content/images/2022/07/Leonhard_Euler.jpg" />
+    <meta property="article:published_time" content="2022-05-20T20:45:57.000Z" />
+    <meta property="article:modified_time" content="2022-12-23T12:43:02.000Z" />
+    <meta property="article:tag" content="theory" />
+    <meta property="article:tag" content="classification" />
+    
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Softmax" />
+    <meta name="twitter:description" content="In this post, I want to introduce the softmax function (also known as the normalized exponential function), outline its use case, and present a python implementation that will come in handy in the development of our artificial neural network." />
+    <meta name="twitter:url" content="http://frank690.github.io/softmax/" />
+    <meta name="twitter:image" content="http://frank690.github.io/content/images/2022/07/Leonhard_Euler.jpg" />
+    <meta name="twitter:label1" content="Written by" />
+    <meta name="twitter:data1" content="Frank Eschner" />
+    <meta name="twitter:label2" content="Filed under" />
+    <meta name="twitter:data2" content="theory, classification" />
+    <meta property="og:image:width" content="2000" />
+    <meta property="og:image:height" content="1473" />
+    
+    <script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "publisher": {
+        "@type": "Organization",
+        "name": "sffresch",
+        "url": "http://frank690.github.io/",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "http://frank690.github.io/favicon.ico",
+            "width": 48,
+            "height": 48
+        }
+    },
+    "author": {
+        "@type": "Person",
+        "name": "Frank Eschner",
+        "image": {
+            "@type": "ImageObject",
+            "url": "http://frank690.github.io/content/images/2021/08/68586209_10205828296182785_2060227135364136960_n.jpg"
+        },
+        "url": "http://frank690.github.io/author/frank690/",
+        "sameAs": [
+            "https://sffresch.de"
+        ]
+    },
+    "headline": "Softmax",
+    "url": "http://frank690.github.io/softmax/",
+    "datePublished": "2022-05-20T20:45:57.000Z",
+    "dateModified": "2022-12-23T12:43:02.000Z",
+    "image": {
+        "@type": "ImageObject",
+        "url": "http://frank690.github.io/content/images/2022/07/Leonhard_Euler.jpg",
+        "width": 2000,
+        "height": 1473
+    },
+    "keywords": "theory, classification",
+    "description": "In this post, I want to introduce the softmax function (also known as the normalized exponential function), outline its use case, and present a python implementation that will come in handy in the development of our artificial neural network.",
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "http://frank690.github.io/"
+    }
+}
+    </script>
+
+    <meta name="generator" content="Ghost 5.26" />
+    <link rel="alternate" type="application/rss+xml" title="sffresch" href="../rss/index.html" />
+    
+    <script defer src="https://cdn.jsdelivr.net/ghost/sodo-search@~1.1/umd/sodo-search.min.js" data-key="4ff92b1e10a1c4fd4f9c70b43b" data-styles="https://cdn.jsdelivr.net/ghost/sodo-search@~1.1/umd/main.css" data-sodo-search="http://frank690.github.io/" crossorigin="anonymous"></script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-KGHY4JLHRR"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-KGHY4JLHRR');
+</script>
+
+<!-- Inline Latex Math -->
+<script type="text/x-mathjax-config">
+   MathJax.Hub.Config({
+     tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']],
+     processEscapes: true}          
+   });
+</script>
+
+<!-- Latex Math -->
+<script type="text/javascript" async
+src="https://cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+<!--- copy to clipboard -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.19.0/themes/prism-tomorrow.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.19.0/plugins/toolbar/prism-toolbar.min.css" />
+
+<!--- code styling -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
+
+<!--- cookie consent -->
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.css" /><style>:root {--ghost-accent-color: #650179;}</style>
+</head>
+
+<body class="post-template tag-theory tag-classification">
+<div id='particles-js'></div>
+    <div class="site">
+        <header class="site-header">
+    <div class="navbar">
+        <div class="navbar-left">
+            <a class="logo" href="../index.html">
+        <span class="logo-text">sffresch</span>
+</a>        </div>
+            <nav class="main-menu hidden-xs hidden-sm hidden-md">
+                <ul class="nav-list u-plain-list">
+        <li
+            class="menu-item menu-item-whoami">
+            <a class="menu-item-link" href="../whoami/index.html">whoami</a>
+        </li>
+</ul>
+            </nav>
+        <div class="navbar-logo">
+            <a class="github" href="https://github.com/frank690">
+                <img class="github" src="../assets/images/github-mark.svg"></img>
+            </a>
+        </div>
+        <div class="navbar-right">
+            <div class="social hidden-xs hidden-sm"></div>
+            <div class="burger hidden-lg hidden-xl">
+    <div class="burger-bar"></div>
+    <div class="burger-bar"></div>
+</div>        </div>
+    </div>
+</header>        <div class="site-content">
+            
+<div class="container">
+    <div class="row">
+        <div class="content-column col-sm-12">
+            <div class="content-area">
+                <main class="site-main">
+                        <article
+                            class="post tag-theory tag-classification single u-shadow">
+                            <div class="post-meta">
+                                <time class="post-meta-date"
+                                    datetime="2022-05-20">
+                                    May 20, 2022
+                                </time>
+                                <span
+                                    class="post-meta-length">4 min read</span>
+                            </div>
+                                <figure class="post-media">
+        <div class="u-placeholder">
+            <a class="post-image-link" href="index.html">
+            <div class="on-media-title no-select">
+                Softmax<br />
+                
+            </div>
+            <img class="post-image no-select lazyload"
+                data-srcset="/content/images/size/w400/2022/07/Leonhard_Euler.jpg 400w, /content/images/size/w750/2022/07/Leonhard_Euler.jpg 750w, /content/images/size/w960/2022/07/Leonhard_Euler.jpg 960w"
+                src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+                data-sizes="auto" alt="Softmax">
+            </a>
+        </div>
+
+    </figure>
+                            <div class="post-wrapper">
+                                <div class="post-content u-text-format">
+                                    <p>In this post, I want to introduce the <a href="https://en.wikipedia.org/wiki/Softmax_function">softmax function</a> (also known as the normalized exponential function), outline its use case, and present a python implementation that will come in handy in the development of our <a href="../tag/neural-network-series/index.html">artificial neural network</a>.</p><p><strong>TL;DR</strong>: Use softmax when doing multiclass classification. It turns arbitrary long output into a probability distribution (sum of all values equal to one).  <a href="https://github.com/frank690/sffresch-code/blob/main/softmax/code.ipynb">Here is the code</a>.</p><h3 id="what-is-the-softmax-function">What is the softmax function?</h3><p>Given a real-valued vector of arbitrary length $(z \in \mathbf{R}^{C}, C \in \mathbf{N})$, with values ranging from $(-\infty, \infty)$, the softmax function scales each of these values down so that they are in the range of $(0, 1)$ and their sum is exactly 1. In practical terms, it converts the given values $(z_{i})$ into a probability distribution, in which previously high values will result in a high probability and low values in a low probability. What is high and low depends on the given numbers themselves. As a formula, the softmax looks like this</p><p>$$ S_{y}(z) =\frac{e^{z_{y}}}{\sum_{c=1}^{C}e^{z_{c}}} $$</p><p>Assuming the given vector is $z$ and it has $C$ elements, one can compute the probability of the $y$'th element by computing $e^{z_{y}}$ and divide it by the sum of all elements, also as powers of $e$.</p><h3 id="wait-what-can-i-have-an-example">Wait, what? Can I have an example?</h3><p>Sure! Let us use the example mentioned in my post about <a href="../differentiate-all-the-things/index.html">the differentiation of the softmax in combination with the log-loss</a>. Assume we have an MCC problem, in which we want to predict if a given image shows a dog, a cat, or a chicken. Let us choose the following image.</p><!--kg-card-begin: html--><center><img style="width: 33%;" src="https://github.com/frank690/sffresch-code/raw/main/differentiate-all-the-things/images/cat.png" class="kg-image" alt="" loading="lazy"><br /></center><!--kg-card-end: html--><p>If we pass this cat image to our neural network, it will return three values that indicate its prediction (one for each of the classes), in ML these values are called logits. So for 3 possible classes (dog, cat, chicken), our network might return something like $(-1.5, 15.3, 13.37)$. Looking at these logits, you can easily see that the network disagrees with this image being a dog, but the values for cat or chicken seem rather close. We continue by passing these logits to the softmax function, where they are turned into a discrete probability distribution, in this case, $(0, 0.873, 0.127)$. In other words: The network is 0% certain that the given image is a dog, 87.3% it's a cat, and 12.7% that it was given a chicken image. Suddenly, the rather close logits for cat and chicken, have been turned into probabilities that are far apart and way easier to interpret.</p><h3 id="i-heard-there-can-be-stability-problems">I heard there can be stability problems?</h3><p>Yes. Much like ourselves, the hardware we use is at some point limited in its computational capabilities. These limits are met when doing computations with very small or very big numbers. In such cases, we typically encounter messages like <strong>overflow warning</strong> (for very big numbers), or <strong>division by zero error</strong> (when trying to do further computations with very small numbers). Since we are using the exponential function, these limits can be reached rather quickly and we end up in numerical instabilities. Here is a little example to show you just how quickly these situations can arise.</p><!--kg-card-begin: html--><pre class="line-numbers language-python"><code>import numpy as np
+
+big_h = [42, 1337, 557]  # our networks output that we will feed to softmax
+softmax_nominator = np.exp(big_h)  # array([1.73927494e+018, inf, 7.98043234e+241])
+# RuntimeWarning: overflow encountered in exp
+
+small_h = [-42, -1337, -557]
+softmax_nominator = np.exp(small_h)  # array([5.74952226e-019, 0.00000000e+000, 1.25306494e-242])
+</code></pre><!--kg-card-end: html--><h3 id="ok-numerical-instabilities-are-a-thing-what-now">OK. Numerical instabilities are a thing. What now?</h3><p>We will use a neat little workaround to tackle this problem: Subtract each output of our network by its largest value before passing it to the softmax function! This results in our nominator always having $e^0 = 1$ as its biggest value. With $k$ different inputs, we can be sure that the value of the denominator of our softmax function (the sum of all nominator values) is always in the interval $[1, k]$. This puts us in a numerically safe space, that theoretically can only run into problems again if we try to pass the softmax function a stupidly large vector (e.g. with over 1 * 10^250 elements) with (in the worst case) the same value over and over again. But I guess one would run into memory issues first.</p><!--kg-card-begin: html--><pre class="line-numbers language-python"><code>import numpy as np
+
+hypothesis = [1335, 1337, 1322]  # our networks output that we will feed to softmax
+safe_hypothesis = hypothesis - np.max(hypothesis)  # array([ -2,   0, -15])
+nominator = np.exp(safe_hypothesis)  # array([1.35335283e-01, 1.00000000e+00, 3.05902321e-07])
+denominator = np.sum(nominator)  # 1.1353355891389334
+result = nominator / denominator  # array([1.19202890e-01, 8.80796841e-01, 2.69437797e-07])
+
+</code></pre><!--kg-card-end: html--><h3 id="but-why-can-we-simply-change-all-the-values">But why can we simply change all the values?</h3><p>Because it does not matter to the result of the computation. Look at the following equation. We introduce a trivial 1 which we turn into the variable $K$, respectively $\frac{K}{K}$. Afterward, we subsequently modify the equation until $K$ ends up in the exponential function itself. Here we can replace it with any value we want, which includes (of course) the maximum value of the output of our network.</p><p>$$ S_{y}(z) =\frac{e^{z_{y}}}{\sum_{c=1}^{C}e^{z_{c}}} <br>= 1 * \frac{e^{z_{y}}}{\sum_{c=1}^{C}e^{z_{c}}}<br>= \frac{K}{K} * \frac{e^{z_{y}}}{\sum_{c=1}^{C}e^{z_{c}}}<br>= \frac{K * e^{z_{y}}}{K * \sum_{c=1}^{C}e^{z_{c}}}<br>= \frac{K * e^{z_{y}}}{\sum_{c=1}^{C}K * e^{z_{c}}} <br>= \frac{e^{z_{y} + log(K)}}{\sum_{c=1}^{C}e^{z_{c} + log(K)}}<br>= \frac{e^{z_{y} - max(e^{z_{i}})}}{\sum_{c=1}^{C}e^{z_{c} - max(e^{z_{i}})}} $$</p><h3 id="code">Code</h3><!--kg-card-begin: html--><pre class="line-numbers language-python"><code>import numpy as np
+
+def softmax(z: np.ndarray, gradient: bool = False) -> np.ndarray:
+    """
+    Apply the softmax transformation to the given vector (z).
+    If the provided gradient flag is true, return the derivative of the softmax.
+    :param z: Data vector of shape (C X 1)
+    :param gradient: Boolean flag. Default is False.
+    :return: Softmax transformed values or the gradient of the softmax.
+    """
+    C, _ = z.shape
+    
+    z -= np.max(z, axis=1, keepdims=True)  # for numeric stability
+    S = np.exp(z) / np.exp(z).sum(axis=1, keepdims=True)
+    return S
+</code></pre><!--kg-card-end: html--><h3 id="summary">Summary</h3><p>The softmax is a great tool to use when doing MCC as it turns (possibly very large) outputs of our neural network (logits) into nicely interpretable and further processable probabilities. If you want to check out the code of this post, <a href="https://github.com/frank690/sffresch-code/blob/main/softmax/code.ipynb">click here</a>.</p><h3 id="synonyms">Synonyms</h3><p>MCC - Multiclass classification<br>logits - Output of a neural network before the last layer</p>
+                                </div>
+                                    <h2 class="post-tags-header">Tags</h2>
+    <div class="post-tags">
+            <a class="post-tag" id="theory" href="../tag/theory/index.html" style="background-color: #bf7e0d;">theory</a>
+            <a class="post-tag" id="classification" href="../tag/classification/index.html" style="background-color: #517510;">classification</a>
+    </div>
+                            </div>
+                        </article>
+                </main>
+            </div>
+        </div>
+    </div>
+</div>
+        </div>
+        <footer class="site-footer">
+    <div class="container">
+        <div class="footer-inner">
+            <div class="social">
+                <a class="social-item social-item-rss"
+                    href="https://feedly.com/i/subscription/feed/http://frank690.github.io/rss/"
+                    target="_blank" rel="noopener noreferrer" aria-label="RSS">
+                    <i class="icon icon-rss"></i>
+                </a>
+            </div>
+            <div class="copyright">
+                Powered by <a href="https://ghost.org/" target="_blank">Ghost</a>
+            </div>
+        </div>
+    </div>
+</footer>    </div>
+
+
+    <div class="dimmer"></div>
+<div class="off-canvas">
+    <div class="burger burger-close hidden-lg hidden-xl">
+    <div class="burger-bar"></div>
+    <div class="burger-bar"></div>
+</div>    <div class="mobile-menu">
+        <ul class="nav-list u-plain-list">
+        <li
+            class="menu-item menu-item-whoami">
+            <a class="menu-item-link" href="../whoami/index.html">whoami</a>
+        </li>
+</ul>
+    </div>
+    <aside class="widget-area">
+    <div class="widget widget-tags">
+    <h4 class="widget-title">Tags</h4>
+        <div class="tag-feed">
+                <a class="post-tag" id="ANN" href="../tag/ann/index.html" style="background-color: #8e0101;">ANN</a>
+                <a class="post-tag" id="DIY" href="../tag/diy/index.html" style="background-color: #a87d34;">DIY</a>
+                <a class="post-tag" id="classification" href="../tag/classification/index.html" style="background-color: #517510;">classification</a>
+                <a class="post-tag" id="data-science" href="../tag/data-science/index.html" style="background-color: #366356;">data-science</a>
+                <a class="post-tag" id="log-loss" href="../tag/log-loss/index.html" style="background-color: #ff2424;">log-loss</a>
+                <a class="post-tag" id="machine-learning" href="../tag/machine-learning/index.html" style="background-color: #001999;">machine-learning</a>
+                <a class="post-tag" id="neural-network" href="../tag/neural-network/index.html" style="background-color: #600094;">neural-network</a>
+                <a class="post-tag" id="neural-network-series" href="../tag/neural-network-series/index.html" style="background-color: #c36fe2;">neural-network-series</a>
+                <a class="post-tag" id="python" href="../tag/python/index.html" style="background-color: #026600;">python</a>
+                <a class="post-tag" id="rust" href="../tag/rust/index.html" style="background-color: #a4541e;">rust</a>
+                <a class="post-tag" id="softmax" href="../tag/softmax/index.html" style="background-color: #1c226d;">softmax</a>
+                <a class="post-tag" id="theory" href="../tag/theory/index.html" style="background-color: #bf7e0d;">theory</a>
+        </div>
+</div></aside></div>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous">
+        </script>
+    <script src="../assets/built/main.min.js%3Fv=5c96eb8187"></script>
+
+    
+
+    <!-- copy to clipboard -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.19.0/prism.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.19.0/plugins/toolbar/prism-toolbar.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.19.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+<!-- code styling -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/components/prism-python.min.js" ></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/components/prism-rust.min.js" ></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.6.0/plugins/line-numbers/prism-line-numbers.min.js" ></script>
+
+<!-- cookie consent -->
+<script src="https://cdn.jsdelivr.net/npm/cookieconsent@3/build/cookieconsent.min.js" data-cfasync="false"></script>
+<script>
+window.cookieconsent.initialise({
+  "palette": {
+    "popup": {
+      "background": "#ffffff"
+    },
+    "button": {
+      "background": "#8ec760",
+      "text": "#ffffff"
+    }
+  },
+  "theme": "edgeless"
+});
+</script>
+</body>
+
+</html>

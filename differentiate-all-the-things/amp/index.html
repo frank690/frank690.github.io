@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html ⚡>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+
+    <title>Differentiate all the things</title>
+
+    <meta name="description" content="In this post, I am going to show you how to compute and implement the combination of the derivative of the softmax and the log-loss functions to run your gradient descent algorithm." />
+    <link rel="canonical" href="../index.html" />
+    <meta name="referrer" content="no-referrer-when-downgrade" />
+    
+    <meta property="og:site_name" content="sffresch" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Differentiate all the things" />
+    <meta property="og:description" content="In this post, I am going to show you how to compute and implement the combination of the derivative of the softmax and the log-loss functions to run your gradient descent algorithm." />
+    <meta property="og:url" content="http://frank690.github.io/differentiate-all-the-things/" />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?crop&#x3D;entropy&amp;cs&#x3D;tinysrgb&amp;fit&#x3D;max&amp;fm&#x3D;jpg&amp;ixid&#x3D;MnwxMTc3M3wwfDF8c2VhcmNofDJ8fGNhdHMlMjBhbmQlMjBkb2dzfGVufDB8fHx8MTY1MTU2MjAyMA&amp;ixlib&#x3D;rb-1.2.1&amp;q&#x3D;80&amp;w&#x3D;2000" />
+    <meta property="article:published_time" content="2022-05-03T07:10:46.000Z" />
+    <meta property="article:modified_time" content="2022-07-17T18:03:19.000Z" />
+    <meta property="article:tag" content="ANN" />
+    <meta property="article:tag" content="theory" />
+    <meta property="article:tag" content="data-science" />
+    <meta property="article:tag" content="softmax" />
+    <meta property="article:tag" content="log-loss" />
+    <meta property="article:tag" content="classification" />
+    
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Differentiate all the things" />
+    <meta name="twitter:description" content="In this post, I am going to show you how to compute and implement the combination of the derivative of the softmax and the log-loss functions to run your gradient descent algorithm." />
+    <meta name="twitter:url" content="http://frank690.github.io/differentiate-all-the-things/" />
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?crop&#x3D;entropy&amp;cs&#x3D;tinysrgb&amp;fit&#x3D;max&amp;fm&#x3D;jpg&amp;ixid&#x3D;MnwxMTc3M3wwfDF8c2VhcmNofDJ8fGNhdHMlMjBhbmQlMjBkb2dzfGVufDB8fHx8MTY1MTU2MjAyMA&amp;ixlib&#x3D;rb-1.2.1&amp;q&#x3D;80&amp;w&#x3D;2000" />
+    <meta name="twitter:label1" content="Written by" />
+    <meta name="twitter:data1" content="Frank Eschner" />
+    <meta name="twitter:label2" content="Filed under" />
+    <meta name="twitter:data2" content="ANN, theory, data-science, softmax, log-loss, classification" />
+    <meta property="og:image:width" content="2000" />
+    <meta property="og:image:height" content="1333" />
+    
+    <script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "publisher": {
+        "@type": "Organization",
+        "name": "sffresch",
+        "url": "http://frank690.github.io/",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "http://frank690.github.io/favicon.ico",
+            "width": 48,
+            "height": 48
+        }
+    },
+    "author": {
+        "@type": "Person",
+        "name": "Frank Eschner",
+        "image": {
+            "@type": "ImageObject",
+            "url": "http://frank690.github.io/content/images/2021/08/68586209_10205828296182785_2060227135364136960_n.jpg"
+        },
+        "url": "http://frank690.github.io/author/frank690/",
+        "sameAs": [
+            "https://sffresch.de"
+        ]
+    },
+    "headline": "Differentiate all the things",
+    "url": "http://frank690.github.io/differentiate-all-the-things/",
+    "datePublished": "2022-05-03T07:10:46.000Z",
+    "dateModified": "2022-07-17T18:03:19.000Z",
+    "image": {
+        "@type": "ImageObject",
+        "url": "https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxMTc3M3wwfDF8c2VhcmNofDJ8fGNhdHMlMjBhbmQlMjBkb2dzfGVufDB8fHx8MTY1MTU2MjAyMA&ixlib=rb-1.2.1&q=80&w=2000",
+        "width": 2000,
+        "height": 1333
+    },
+    "keywords": "ANN, theory, data-science, softmax, log-loss, classification",
+    "description": "In this post, I am going to show you how to compute and implement the combination of the derivative of the softmax and the log-loss functions to run your gradient descent algorithm.",
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "http://frank690.github.io/"
+    }
+}
+    </script>
+
+    <meta name="generator" content="Ghost 5.26" />
+    <link rel="alternate" type="application/rss+xml" title="sffresch" href="../../rss/index.html" />
+
+    <style amp-custom>
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    html {
+        overflow-x: hidden;
+        overflow-y: scroll;
+        font-size: 62.5%;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    }
+
+    body {
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        color: #3a4145;
+        font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Open Sans,Helvetica Neue,sans-serif;
+        font-size: 1.7rem;
+        line-height: 1.55em;
+        font-weight: 400;
+        font-style: normal;
+        background: #fff;
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    p,
+    ul,
+    ol,
+    li,
+    dl,
+    dd,
+    hr,
+    pre,
+    form,
+    table,
+    video,
+    figure,
+    figcaption,
+    blockquote {
+        margin: 0;
+        padding: 0;
+    }
+
+    ul[class],
+    ol[class] {
+        padding: 0;
+        list-style: none;
+    }
+
+    img {
+        display: block;
+        max-width: 100%;
+    }
+
+    input,
+    button,
+    select,
+    textarea {
+        font: inherit;
+        -webkit-appearance: none;
+    }
+
+    fieldset {
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    label {
+        display: block;
+        font-size: 0.9em;
+        font-weight: 700;
+    }
+
+    hr {
+        position: relative;
+        display: block;
+        width: 100%;
+        height: 1px;
+        border: 0;
+        border-top: 1px solid currentcolor;
+        opacity: 0.1;
+    }
+
+    ::selection {
+        text-shadow: none;
+        background: #cbeafb;
+    }
+
+    mark {
+        background-color: #fdffb6;
+    }
+
+    small {
+        font-size: 80%;
+    }
+
+    sub,
+    sup {
+        position: relative;
+        font-size: 75%;
+        line-height: 0;
+        vertical-align: baseline;
+    }
+    sup {
+        top: -0.5em;
+    }
+    sub {
+        bottom: -0.25em;
+    }
+
+    ul li + li {
+        margin-top: 0.6em;
+    }
+
+    a {
+        color: var(--ghost-accent-color, #1292EE);
+        text-decoration-skip-ink: auto;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        margin: 0;
+        font-weight: 700;
+        color: #121212;
+        line-height: 1.4em;
+    }
+
+    h1 {
+        font-size: 3.4rem;
+        line-height: 1.1em;
+    }
+
+    h2 {
+        font-size: 2.4rem;
+        line-height: 1.2em;
+    }
+
+    h3 {
+        font-size: 1.8rem;
+    }
+
+    h4 {
+        font-size: 1.7rem;
+    }
+
+    h5 {
+        font-size: 1.6rem;
+    }
+
+    h6 {
+        font-size: 1.6rem;
+    }
+
+    amp-img {
+        height: 100%;
+        width: 100%;
+        max-width: 100%;
+        max-height: 100%;
+    }
+
+    amp-img img {
+        object-fit: cover;
+    }
+    
+    amp-youtube {
+        height: calc(100vw / 1.78);
+        width: 100vw;
+        position: relative;
+    }
+
+    amp-youtube img {
+        position: absolute;
+    }
+
+    .page-header {
+        padding: 50px 5vmin 30px;
+        text-align: center;
+        font-size: 2rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .page-header a {
+        color: #121212;
+        font-weight: 700;
+        text-decoration: none;
+        font-size: 1.6rem;
+        letter-spacing: -0.1px;
+    }
+
+    .post {
+        max-width: 680px;
+        margin: 0 auto;
+    }
+
+    .post-header {
+        margin: 0 5vmin 5vmin;
+        text-align: center;
+    }
+
+    .post-meta {
+        margin: 1rem 0 0 0;
+        text-transform: uppercase;
+        color: #738a94;
+        font-weight: 500;
+        font-size: 1.3rem;
+    }
+
+    .post-image {
+        margin: 0 0 5vmin;
+    }
+
+    .post-image img {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+
+    .post-content {
+        padding: 0 5vmin;
+    }
+
+    .post-content > * + * {
+        margin-top: 1.5em;
+    }
+
+    .post-content [id]:not(:first-child) {
+        margin: 2em 0 0;
+    }
+
+    .post-content > [id] + * {
+        margin-top: 1rem;
+    }
+
+    .post-content [id] + .kg-card,
+    .post-content blockquote + .kg-card {
+        margin-top: 40px;
+    }
+
+    .post-content > ul,
+    .post-content > ol,
+    .post-content > dl {
+        padding-left: 1.9em;
+    }
+
+    .post-content hr {
+        margin-top: 40px;
+    }
+
+    .post .post-content hr + * {
+        margin-top: 40px;
+    }
+
+    .post-content amp-img {
+        background-color: #f8f8f8;
+    }
+
+    .post-content blockquote {
+        position: relative;
+        font-style: italic;
+    }
+
+    .post-content blockquote::before {
+        content: "";
+        position: absolute;
+        left: -1.5em;
+        top: 0;
+        bottom: 0;
+        width: 0.3rem;
+        background: var(--ghost-accent-color, #1292EE);
+    }
+
+    .post-content blockquote.kg-blockquote-alt {
+        font-size: 1.2em;
+        font-style: italic;
+        line-height: 1.6em;
+        text-align: center;
+        color: #738a94;
+        padding: 0.75em 3em 1.25em;
+    }
+
+    .post-content blockquote.kg-blockquote-alt::before {
+        display: none;
+    }
+
+    .post-content :not(.kg-card):not([id]) + .kg-card {
+        margin-top: 40px;
+    }
+
+    .post-content .kg-card + :not(.kg-card) {
+        margin-top: 40px;
+    }
+
+    .kg-card figcaption {
+        padding: 1.5rem 1.5rem 0;
+        text-align: center;
+        font-weight: 500;
+        font-size: 1.3rem;
+        line-height: 1.4em;
+        opacity: 0.6;
+    }
+
+    .kg-card figcaption strong {
+        color: rgba(0,0,0,0.8);
+    }
+
+    .post-content :not(pre) code {
+        vertical-align: middle;
+        padding: 0.15em 0.4em 0.15em;
+        border: #e1eaef 1px solid;
+        font-weight: 400;
+        font-size: 0.9em;
+        line-height: 1em;
+        color: #15171a;
+        background: #f0f6f9;
+        border-radius: 0.25em;
+    }
+
+    .post-content > pre {
+        overflow: scroll;
+        padding: 16px 20px;
+        color: #fff;
+        background: #1F2428;
+        border-radius: 5px;
+        box-shadow: 0 2px 6px -2px rgba(0,0,0,.1), 0 0 1px rgba(0,0,0,.4);
+    }
+
+    .kg-embed-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .kg-image-card img {
+        margin: auto;
+    }
+
+    .kg-gallery-card + .kg-gallery-card {
+        margin-top: 0.75em;
+    }
+
+    .kg-gallery-container {
+        position: relative;
+    }
+
+    .kg-gallery-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    .kg-gallery-image {
+        width: 100%;
+        height: 100%;
+    }
+
+    .kg-gallery-row:not(:first-of-type) {
+        margin: 0.75em 0 0 0;
+    }
+
+    .kg-gallery-image:not(:first-of-type) {
+        margin: 0 0 0 0.75em;
+    }
+
+    .kg-bookmark-card,
+    .kg-bookmark-publisher {
+        position: relative;
+    }
+
+    .kg-bookmark-container,
+    .kg-bookmark-container:hover {
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row-reverse;
+        color: currentColor;
+        background: rgba(255,255,255,0.6);
+        font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Open Sans,Helvetica Neue,sans-serif;
+        text-decoration: none;
+        border-radius: 3px;
+        box-shadow: 0 2px 6px -2px rgba(0, 0, 0, 0.1), 0 0 1px rgba(0, 0, 0, 0.4);
+        overflow: hidden;
+    }
+
+    .kg-bookmark-content {
+        flex-basis: 0;
+        flex-grow: 999;
+        padding: 20px;
+        order: 1;
+    }
+
+    .kg-bookmark-title {
+        font-weight: 600;
+        font-size: 1.5rem;
+        line-height: 1.3em;
+    }
+
+    .kg-bookmark-description {
+        display: -webkit-box;
+        max-height: 45px;
+        margin: 0.5em 0 0 0;
+        font-size: 1.4rem;
+        line-height: 1.55em;
+        overflow: hidden;
+        opacity: 0.8;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .kg-bookmark-metadata {
+        margin-top: 20px;
+    }
+
+    .kg-bookmark-metadata {
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        font-size: 1.3rem;
+        line-height: 1.3em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .kg-bookmark-description {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+    }
+
+    .kg-bookmark-metadata amp-img {
+        width: 18px;
+        height: 18px;
+        max-width: 18px;
+        max-height: 18px;
+        margin-right: 10px;
+    }
+
+    .kg-bookmark-thumbnail {
+        display: flex;
+        flex-basis: 20rem;
+        flex-grow: 1;
+        justify-content: flex-end;
+    }
+
+    .kg-bookmark-thumbnail amp-img {
+        max-height: 200px;
+    }
+
+    .kg-bookmark-author {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    .kg-bookmark-publisher::before {
+        content: "•";
+        margin: 0 .5em;
+    }
+
+    .kg-toggle-card-icon {
+        display: none;
+    }
+
+    .kg-toggle-content {
+        margin-top: 0.8rem;
+    }
+
+    .kg-product-card-container {
+        background: transparent;
+        padding: 20px;
+        width: 100%;
+        border-radius: 5px;
+        box-shadow: inset 0 0 0 1px rgb(124 139 154 / 25%);
+    }
+
+    .kg-product-card-description p {
+        margin-top: 1.5em;
+    }
+
+    .kg-product-card-description ul {
+        margin-left: 24px;
+    }
+
+    .kg-product-card-title {
+        font-size: 1.9rem;
+        font-weight: 700;
+    }
+
+    .kg-product-card-rating-star {
+        height: 28px;
+        width: 20px;
+        margin-right: 2px;
+    }
+
+    .kg-product-card-rating-star svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+    opacity: 0.15;
+    }
+
+    .kg-product-card-rating-active.kg-product-card-rating-star svg {
+    opacity: 1;
+    }
+
+    .kg-nft-card-container {
+        position: relative;
+        display: flex;
+        flex: auto;
+        flex-direction: column;
+        text-decoration: none;
+        font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Open Sans,Helvetica Neue,sans-serif;
+        font-size: 1.4rem;
+        font-weight: 400;
+        box-shadow: 0 2px 6px -2px rgb(0 0 0 / 10%), 0 0 1px rgb(0 0 0 / 40%);
+        width: 100%;
+        max-width: 512px;
+        color: #15212A;
+        background: #fff;
+        border-radius: 5px;
+        transition: none;
+        margin: 0 auto;
+    }
+
+    .kg-nft-metadata {
+        padding: 2.0rem;
+    }
+
+    .kg-nft-image-container {
+        position: relative;
+    }
+
+    .kg-nft-image {
+        display: flex;
+        border-radius: 5px 5px 0 0;
+    }
+
+    .kg-nft-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .kg-nft-header h4.kg-nft-title {
+        font-size: 1.9rem;
+        font-weight: 700;
+        margin: 0;
+        color: #15212A;
+    }
+
+    .kg-nft-header amp-img {
+        max-width: 114px;
+        max-height: 26px;
+    }
+
+    .kg-nft-opensea-logo {
+        margin-top: 2px;
+        width: 100px;
+    }
+
+    .kg-nft-creator {
+        font-family: inherit;
+        color: #95A1AD;
+    }
+
+    .kg-nft-creator span {
+        font-weight: 500;
+        color: #15212A;
+    }
+
+    .kg-nft-card p.kg-nft-description {
+        font-size: 1.4rem;
+        line-height: 1.4em;
+        margin: 2.0rem 0 0;
+        color: #222;
+    }
+
+    .kg-button-card {
+        display: flex;
+        position: static;
+        align-items: center;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .kg-btn {
+        display: flex;
+        position: static;
+        align-items: center;
+        padding: 0 2.0rem;
+        height: 4.0rem;
+        line-height: 4.0rem;
+        font-size: 1.65rem;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    .kg-btn:hover {
+        opacity: 0.85;
+    }
+
+    .kg-btn-accent {
+        background-color: var(--ghost-accent-color, #1292EE);
+        color: #fff;
+    }
+
+    .kg-callout-card {
+        display: flex;
+        padding: 20px 28px;
+        border-radius: 3px;
+    }
+
+    .kg-callout-card-grey {
+        background: rgba(124, 139, 154, 0.13);
+    }
+
+    .kg-callout-card-white {
+        background: transparent;
+        box-shadow: inset 0 0 0 1px rgba(124, 139, 154, 0.25);
+    }
+
+    .kg-callout-card-blue {
+        background: rgba(33, 172, 232, 0.12);
+    }
+
+    .kg-callout-card-green {
+        background: rgba(52, 183, 67, 0.12);
+    }
+
+    .kg-callout-card-yellow {
+        background: rgba(240, 165, 15, 0.13);
+    }
+
+    .kg-callout-card-red {
+        background: rgba(209, 46, 46, 0.11);
+    }
+
+    .kg-callout-card-pink {
+        background: rgba(225, 71, 174, 0.11);
+    }
+
+    .kg-callout-card-purple {
+        background: rgba(135, 85, 236, 0.12);
+    }
+
+    .kg-callout-card-accent {
+        background: var(--ghost-accent-color);
+        color: #fff;
+    }
+
+    .kg-callout-card-accent a {
+        color: #fff;
+    }
+
+    .kg-callout-emoji {
+        padding-right: 16px;
+        line-height: 1.3;
+        font-size: 1.25em;
+    }
+
+    .kg-header-card {
+        padding: 6em 3em;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .kg-header-card.kg-size-small {
+        padding-top: 4em;
+        padding-bottom: 4em;
+    }
+
+    .kg-header-card.kg-size-large {
+        padding-top: 12em;
+        padding-bottom: 12em;
+    }
+
+    .kg-header-card.kg-width-full {
+        padding-left: 4em;
+        padding-right: 4em;
+    }
+
+    .kg-header-card.kg-align-left {
+        text-align: left;
+        align-items: flex-start;
+    }
+
+    .kg-header-card.kg-style-dark {
+        background: #15171a;
+        color: #ffffff;
+    }
+
+    .kg-header-card.kg-style-light {
+        color: #15171a;
+        border: 1px solid rgba(124, 139, 154, 0.25);
+        border-width: 1px 0;
+    }
+
+    .kg-header-card.kg-style-accent {
+        background-color: var(--ghost-accent-color);
+    }
+
+    .kg-header-card.kg-style-image {
+        background-color: #e7e7eb;
+        background-size: cover;
+        background-position: center center;
+    }
+
+    .kg-header-card h2 {
+        font-size: 4em;
+        font-weight: 700;
+        line-height: 1.1em;
+        margin: 0;
+    }
+
+    .kg-header-card h2 strong {
+        font-weight: 800;
+    }
+
+    .kg-header-card.kg-size-small h2 {
+        font-size: 3em;
+    }
+
+    .kg-header-card.kg-size-large h2 {
+        font-size: 5em;
+    }
+
+    .kg-header-card h3 {
+        font-size: 1.25em;
+        font-weight: 500;
+        line-height: 1.3em;
+        margin: 0;
+    }
+
+    .kg-header-card h3 strong {
+        font-weight: 600;
+    }
+
+    .kg-header-card.kg-size-small h3 {
+        font-size: 1em;
+    }
+
+    .kg-header-card.kg-size-large h3 {
+        font-size: 1.5em;
+    }
+
+    .kg-header-card:not(.kg-style-light) h2,
+    .kg-header-card:not(.kg-style-light) h3 {
+        color: #ffffff;
+    }
+
+    .kg-header-card a.kg-header-card-button {
+        display: flex;
+        position: static;
+        align-items: center;
+        padding: 0 1.2em;
+        height: 2.4em;
+        line-height: 1em;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+        font-size: 0.95em;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: opacity 0.2s ease-in-out;
+        background-color: var(--ghost-accent-color);
+        color: #ffffff;
+        margin: 1.75em 0 0;
+    }
+
+    .kg-header-card a.kg-header-card-button:hover {
+        opacity: 0.85;
+    }
+
+    .kg-header-card.kg-size-large a.kg-header-card-button {
+        margin-top: 2em;
+    }
+
+    .kg-header-card.kg-size-small a.kg-header-card-button {
+        margin-top: 1.5em;
+    }
+
+    .kg-header-card.kg-style-image a.kg-header-card-button,
+    .kg-header-card.kg-style-dark a.kg-header-card-button {
+        background: #ffffff;
+        color: #15171a;
+    }
+
+    .kg-header-card.kg-style-accent a.kg-header-card-button {
+        background: #ffffff;
+        color: var(--ghost-accent-color);
+    }
+
+    .kg-audio-card {
+        display: flex;
+        width: 100%;
+        box-shadow: inset 0 0 0 1px rgba(124, 139, 154, 0.25);
+    }
+
+    .kg-audio-thumbnail {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 80px;
+        min-width: 80px;
+        height: 80px;
+        background: transparent;
+        object-fit: cover;
+        aspect-ratio: 1/1;
+        border-radius: 3px 0 0 3px;
+    }
+
+    .kg-audio-thumbnail.placeholder {
+        background: var(--ghost-accent-color);
+    }
+
+    .kg-audio-thumbnail.placeholder svg {
+        width: 24px;
+        height: 24px;
+        fill: white;
+    }
+
+    .kg-audio-player-container {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 100%;
+        --seek-before-width: 0%;
+        --volume-before-width: 100%;
+        --buffered-width: 0%;
+    }
+
+    .kg-audio-title {
+        width: 100%;
+        padding: 8px 12px 0;
+        border: none;
+        font-family: inherit;
+        font-size: 1.1em;
+        font-weight: 700;
+        background: transparent;
+    }
+
+    .kg-audio-player {
+        display: none;
+    }
+
+    .kg-width-full.kg-card-hascaption {
+        display: grid;
+        grid-template-columns: inherit;
+    }
+
+    .post-content table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    .post-content th {
+        padding: 0.5em 0.8em;
+        text-align: left;
+        font-size: .75em;
+        text-transform: uppercase;
+    }
+
+    .post-content td {
+        padding: 0.4em 0.7em;
+    }
+
+    .post-content tbody tr:nth-child(2n + 1) {
+        background-color: rgba(0,0,0,0.1);
+        padding: 1px;
+    }
+
+    .post-content tbody tr:nth-child(2n + 2) td:last-child {
+        box-shadow:
+            inset 1px 0 rgba(0,0,0,0.1),
+            inset -1px 0 rgba(0,0,0,0.1);
+    }
+
+    .post-content tbody tr:nth-child(2n + 2) td {
+        box-shadow: inset 1px 0 rgba(0,0,0,0.1);
+    }
+
+    .post-content tbody tr:last-child {
+        border-bottom: 1px solid rgba(0,0,0,.1);
+    }
+
+    .page-footer {
+        padding: 60px 5vmin;
+        margin: 60px auto 0;
+        text-align: center;
+        background-color: #f8f8f8;
+    }
+
+    .page-footer h3 {
+        margin: 0.5rem 0 0 0;
+    }
+
+    .page-footer p {
+        max-width: 500px;
+        margin: 1rem auto 1.5rem;
+        font-size: 1.7rem;
+        line-height: 1.5em;
+        color: rgba(0,0,0,0.6)
+    }
+
+    .powered {
+        display: inline-flex;
+        align-items: center;
+        margin: 30px 0 0;
+        padding: 6px 9px 6px 6px;
+        border: rgba(0,0,0,0.1) 1px solid;
+        font-size: 12px;
+        line-height: 12px;
+        letter-spacing: -0.2px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+        font-weight: 500;
+        color: #222;
+        text-decoration: none;
+        background: #fff;
+        border-radius: 6px;
+    }
+
+    .powered svg {
+        height: 16px;
+        width: 16px;
+        margin: 0 6px 0 0;
+    }
+
+    @media (max-width: 600px) {
+        body {
+            font-size: 1.6rem;
+        }
+        h1 {
+            font-size: 3rem;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+        }
+    }
+
+    @media (max-width: 400px) {
+        h1 {
+            font-size: 2.6rem;
+            line-height: 1.15em;
+        }
+        h2 {
+            font-size: 2rem;
+            line-height: 1.2em;
+        }
+        h3 {
+            font-size: 1.7rem;
+        }
+    }
+
+    :root {--ghost-accent-color: #650179;}
+    </style>
+
+    <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+    <script async src="https://cdn.ampproject.org/v0.js"></script>
+
+    
+
+</head>
+
+<body class="amp-template">
+    <header class="page-header">
+        <a href="../../index.html">
+                sffresch
+        </a>
+    </header>
+
+    <main class="content" role="main">
+        <article class="post">
+
+            <header class="post-header">
+                <h1 class="post-title">Differentiate all the things</h1>
+                <section class="post-meta">
+                    Frank Eschner -
+                    <time class="post-date" datetime="2022-05-03">03 May 2022</time>
+                </section>
+            </header>
+            <figure class="post-image">
+                <amp-img src="https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?crop&#x3D;entropy&amp;cs&#x3D;tinysrgb&amp;fit&#x3D;max&amp;fm&#x3D;jpg&amp;ixid&#x3D;MnwxMTc3M3wwfDF8c2VhcmNofDJ8fGNhdHMlMjBhbmQlMjBkb2dzfGVufDB8fHx8MTY1MTU2MjAyMA&amp;ixlib&#x3D;rb-1.2.1&amp;q&#x3D;80&amp;w&#x3D;2000" width="600" height="340" layout="responsive" 
+                alt="Differentiate all the things"
+                ></amp-img>
+            </figure>
+            <section class="post-content">
+
+                <p>In this post, I will show you how to compute and implement the combination of the derivative of the <a href="https://en.wikipedia.org/wiki/Softmax_function">softmax</a> and the <a href="https://en.wikipedia.org/wiki/Cross_entropy#Cross-entropy_loss_function_and_logistic_regression">log-loss</a> functions to run your <a href="https://en.wikipedia.org/wiki/Gradient_descent">gradient descent</a> algorithm.</p><p><strong>TL;DR</strong>: <a href="https://github.com/frank690/sffresch-code/blob/main/differentiate-all-the-things/code.ipynb">This is the code</a> and these are the derivatives. $ \frac{\delta L}{\delta w_{y}} =  - X_{n}^{T} * (1 - S_{y}), \frac{\delta L}{\delta w_{j}} = X_{n}^{T} * S_{j} $</p><h3 id="preface">Preface</h3><p>Let us assume that you want to create your neural network from scratch and you have decided upon using it for <a href="https://en.wikipedia.org/wiki/Multiclass_classification">multiclass classification</a> (MCC). There is a good chance, that you will choose the softmax in combination with the log-loss to do the job. Now to update the weights of your network accordingly, you need to know the solution to the differentiation of the whole thing (with respect to (wrt) the weights that you want to optimize).</p><p>$$ \frac{\delta L}{\delta w}=-\frac{1}{N}\sum_{n=1}^{N}log(\frac{e^{X_{n}w_{y}}}{\sum_{c=1}^{C}e^{X_{n}w_{c}}})\frac{\delta}{\delta w} $$</p><p>I highly encourage you to grab some pen and paper and try to come up with the derivatives yourself. In case you are stuck, just keep on reading until you know how to continue. To avoid confusion from the get-go, let us define what each term of the differentiation means and also what dimensions it has.</p><table>
+    <tr>
+        <td><b>Symbol</b></td>
+        <td><b>Meaning</b></td>
+        <td><b>Description</b></td>
+    </tr>
+    <tr>
+    	<td>$ \delta $</td>
+        <td>Delta</td>
+        <td>The differentiation sign.</td>
+    </tr>
+    <tr>
+    	<td>$ L $</td>
+        <td>Overall loss</td>
+        <td>This is what the log-loss ultimately computes.</td>
+    </tr>
+    <tr>
+    	<td>$ X $</td>
+        <td>Data</td>
+        <td>Our input data of the MCC is a matrix. Imagine each row of the matrix is an actual image we want to classify.</td>
+    </tr>
+    <tr>
+    	<td>$ w $</td>
+        <td>Weight</td>
+        <td>The weight of your neural network that you want to optimize.</td>
+    </tr>
+    <tr>
+    	<td>$ -\frac{1}{N} $</td>
+        <td>Minus 1 over N</td>
+        <td>Divides by minus the number of samples (data points) we have in total.</td>
+    </tr>
+    <tr>
+    	<td>$ \sum_{n=1}^{N} $</td>
+        <td>Sum from n = 1 to N</td>
+        <td>Sum the following expression over each sample, starting with 1 and ending with N.</td>
+    </tr>
+    <tr>
+    	<td>$ log(...) $</td>
+        <td>Logarithm</td>
+        <td>Apply the logarithm to whatever is computed inside the brackets.</td>
+    </tr>
+    <tr>
+    	<td>$ X_{n}w_{y} $</td>
+        <td>Data times weights</td>
+        <td>Compute the product of the n'th sample (row) of the input data with the y'th column of the weights. Note that y represents the (one) correct class of the given sample.</td>
+    </tr>
+    <tr>
+    	<td>$ e^{...} $</td>
+        <td>Exponential</td>
+        <td>Compute e to the power of whatever is written in its exponential.</td>
+    </tr>
+    <tr>
+    	<td>$ \sum_{c=1}^{C} $</td>
+        <td>Sum from c = 1 to C</td>
+        <td>Sum the following expression over each class, starting with 1 and ending with C.</td>
+    </tr>
+    <tr>
+    	<td>$ X_{n}w_{c} $</td>
+        <td>Data times weights</td>
+        <td>Compute the product of the n'th sample (row) of the input data with the c'th column of the weights.</td>
+    </tr>
+    <tr>
+    	<td>$ \frac{\delta}{\delta w} $</td>
+        <td>Derivative wrt weights</td>
+        <td>Since the whole previous term represents $ L $ but we still want to show that we want to differentiate this wrt the weights, we attach this term.</td>
+    </tr>
+    <tr><td><br /></td></tr>
+    <tr>
+        <td><b>Symbol</b></td>
+        <td><b>Dimension</b></td>
+        <td><b>Description</b></td>
+    </tr>
+    <tr>
+        <td>$ X $</td>
+        <td>$ (N \times D) $</td>
+        <td>Each row holds a sample of dimension D. There are N samples in total.</td>
+    </tr>
+    <tr>
+        <td>$ w $</td>
+        <td>$ (D \times C) $</td>
+        <td>Each column represents a class of the classification problem (e.g. cat, dog, car, ...) in D dimensions. There are C classes in total.</td>
+    </tr>
+    <tr>
+        <td>$ X_{n} $</td>
+        <td>$ (1 \times D) $</td>
+        <td>A single sample (row) with dimension D.</td>
+    </tr>
+    <tr>
+        <td>$ w_{c} $</td>
+        <td>$ (D \times 1) $</td>
+        <td>The weights of a single class (column) with dimension D.</td>
+    </tr>
+</table><h3 id="divide">Divide ...</h3><p>By applying a bit of calculus, we can make our lives a lot easier. We are going to separate the softmax ($ S_{y} $) and the log-loss function ($ L $) from one another and differentiate them each at a time. Note the little index ($ y $) on the softmax variable, indicating that this computes the value wrt the y'th column of the weight matrix. Our goal of computing the gradient of the loss wrt the weights we want to optimize ($ \frac{\delta L}{\delta w} $), is split into the product of the gradient of the loss wrt the softmax ($ \frac{\delta L}{\delta S_{y}} $) times the gradient of the softmax wrt the weights ($ \frac{\delta S_{y}}{\delta w} $). </p><p>$$ \frac{\delta S_{y}}{\delta w}=\frac{e^{X_{n}w_{y}}}{\sum_{c=1}^{C}e^{X_{n}w_{c}}}\frac{\delta}{\delta w} $$</p><p>$$ \frac{\delta L}{\delta S_{y}}=-\frac{1}{N}\sum_{n=1}^{N}log(S_{y})\frac{\delta}{\delta S_{y}} $$</p><h3 id="and-conquer-the-softmax">... and conquer (the softmax)</h3><p>Let us assume for a second that we have only 3 classes  ($ C = 3 $) that we want to classify. Furthermore, we will just look at the first sample in the dataset. In this case, we can write out the summand in the denominator so the whole expression looks a lot less intimidating to differentiate.</p><p>$$ \frac{\delta S_{y}}{\delta w}=\frac{e^{X_{1}w_{y}}}{e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}}}\frac{\delta}{\delta w} $$</p><p>The question that now arises is, what is the ground truth ($ y $) for our first sample? If our MCC problem deals with identifying cats ($ y = 1 $), dogs ($ y = 2 $), and chickens ($ y = 3 $) on each sample (image) we can just assume that in fact on the first sample ($ n = 1 $) a dog can be seen. Thus, our ground truth for the first image is ($ y = 2 $). Here are the first four images of our dataset with the corresponding ground truth underneath them.</p><table>
+    <tr align="center">
+        <td>($ n = 1 $)</td>
+        <td>($ n = 2 $)</td>
+        <td>($ n = 3 $)</td>
+        <td>($ n = 4 $)</td>
+    </tr>
+    <tr>
+        <td><amp-img src="https://github.com/frank690/sffresch-code/raw/main/differentiate-all-the-things/images/dog.png" width="620" height="620" layout="responsive"></amp-img></td>
+		<td><amp-img src="https://github.com/frank690/sffresch-code/raw/main/differentiate-all-the-things/images/cat.png" width="620" height="620" layout="responsive"></amp-img></td>
+		<td><amp-img src="https://github.com/frank690/sffresch-code/raw/main/differentiate-all-the-things/images/chick.png" width="620" height="620" layout="responsive"></amp-img></td>
+		<td><amp-img src="https://github.com/frank690/sffresch-code/raw/main/differentiate-all-the-things/images/cat2.png" width="620" height="620" layout="responsive"></amp-img></td>
+</tr>
+    <tr align="center">
+        <td>($ y = 2 $)</td>
+        <td>($ y = 1 $)</td>
+        <td>($ y = 3 $)</td>
+        <td>($ y = 1 $)</td>
+    </tr>
+</table><p>Since we have three different columns in the weight matrix ($ w_{1}, w_{2}, w_{3} $) we also need to do three separate derivatives (for now). Luckily for us, nothing fancy is happening when doing the actual differentiation, so all we need to know is a little calculus. More specifically, the <a href="https://en.wikipedia.org/wiki/Quotient_rule">quotient rule</a> as well as <a href="https://www.google.com/search?q=how+to+differentiate+an+exponential+function">how to differentiate an exponential function</a>. Starting the differentiation wrt our first weight column ($ w_{1} $) ...</p><p>$$ \frac{\delta S_{2}}{\delta w_{1}}=\frac{e^{X_{1}w_{2}}}{e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}}}\frac{\delta}{\delta w_{1}} $$</p><p>With the quotient-rule in mind we can define $ g(w_{1}) = e^{X_{1}w_{2}} $ and $ h(w_{1}) = e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}} $. Differentiating these terms brings us to $ g'(w_{1}) = 0 $ (since there is no $ w_{1} $ in the equation) and $ h'(w_{1}) = X_{1}^{T} e^{X_{1}w_{1}} $. Putting it all together we therefore get</p><p>$$ \frac{\delta S_{2}}{\delta w_{1}}=\frac{0*(e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}}) - e^{X_{1}w_{2}}*X_{1}^{T}e^{X_{1}w_{1}}<br />}{(e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}})^{2}} =\frac{-X_{1}^{T}*e^{X_{1}w_{2}}*e^{X_{1}w_{1}}<br />}{(e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}})^{2}} $$</p><p>Due to matrix calculus (and the fact that we always want our derivatives to have the same shape as what we differentiate after), $ X_{1}^{T} $ was transposed. At this point, we can take a hard look at the equation and see that the original softmax function can be found in its differentiation. This becomes more apparent when we re-organize the fraction a bit. Since $ w_{3} $ is not in the nominator of our original differentiation, it behaves just like $ w_{1} $ and we can easily write down its final derivative as well.</p><p>$$ \frac{\delta S_{2}}{\delta w_{1}} = -X_{1}^{T} * \frac{e^{X_{1}w_{2}}}{(e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}})} * \frac{e^{X_{1}w_{1}}}{(e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}})} = -X_{1}^{T} * S_{2} * S_{1} $$</p><p>$$ \frac{\delta S_{2}}{\delta w_{3}} = -X_{1}^{T} * S_{2} * S_{3} $$</p><p>As you might have guessed by now, we can not do the same with $ w_{2} $ since it is our ground truth, due to the fact that image one ($ n = 1 $) shows a dog ($ y = 2 $). Therefore the applied quotient rule looks a little bit different in the nominator, compared to what we did before.</p><p>$$ \frac{\delta S_{2}}{\delta w_{2}} = \frac{e^{X_{1}w_{2}}}{e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}}}\frac{\delta}{\delta w_{2}} = \frac{X_{1}^{T}e^{X_{1}w_{2}}*(e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}})-e^{X_{1}w_{2}}*X_{1}^{T}e^{X_{1}w_{2}}}{(e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}})^{2}} $$</p><p>$$ = X_{1}^{T}*<br />\frac{e^{X_{1}w_{2}}}{e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}}} -<br />X_{1}^{T}*<br />\frac{e^{X_{1}w_{2}}}{e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}}} *<br />\frac{e^{X_{1}w_{2}}}{e^{X_{1}w_{1}}+e^{X_{1}w_{2}}+e^{X_{1}w_{3}}} = X_{1}^{T}*S_{2} * (1 - S_{2})$$</p><p>Finally, we can see that there are two different solutions for the differentiation of the softmax function wrt the weights. This difference depends ultimately on the question of whether the differentiation is wrt the current ground truth ($ y $) or not. Let us introduce the variable $ j $ to indicate labels that are <strong>not</strong> the ground truth ($ j \neq y $). In our example regarding the first image we thus have $ y = 2 $ and $ j = 1, 3 $. With this new variable, we can generalize our previously computed derivatives. And since these equations hold not only regarding the first but all input images, we can put $ n $ back into place.</p><p>$$ \frac{\delta S_{y}}{\delta w_{j}} = -X_{n}^{T} * S_{y} * S_{j} $$</p><p>$$ \frac{\delta S_{y}}{\delta w_{y}} = X_{n}^{T}*S_{y} * (1 - S_{y}) $$</p><h3 id="and-conquer-the-log-loss">... and conquer (the log-loss)</h3><p>Differentiating the log-loss is a lot easier compared to the softmax function. All you need to know here is <a href="https://www.google.com/search?q=how+to+differentiate+a+logarithm">how to differentiate the logarithm</a> and the <a href="https://en.wikipedia.org/wiki/Chain_rule">chain rule</a>. Furthermore please do not panic when you see the summation sign ($ \sum $) in the equation, it just wants to play. Also, we do not have to distinguish between $ S_{y} $ and $ S_{j} $ since there is only one $ S $ in the equation. Thus, the differentiation is valid for both cases.</p><p>$$ \frac{\delta L}{\delta S}=-\frac{1}{N}\sum_{n=1}^{N}log(S)\frac{\delta}{\delta S} = -\frac{1}{N}\sum_{n=1}^{N} \frac{1}{S} = -\frac{1}{N} * (\frac{1}{S} + ... + \frac{1}{S}) = -\frac{1}{N} * N * \frac{1}{S} = -\frac{1}{S}$$</p><h3 id="putting-it-all-together">Putting it all together</h3><p>As discussed before we were able to split the softmax and log-loss differentiation due to calculus being our friend. Looking now at both cases ($ j = y $) and ($ j \neq y $) we can easily compute the final solution to our initial differentiation problem.</p><p>$$ \frac{\delta L}{\delta w_{y}} = \frac{\delta L}{\delta S_{y}} * \frac{\delta S_{y}}{\delta w_{y}} = -\frac{1}{S_{y}} * X_{n}^{T} * S_{y} * (1 - S_{y}) = - X_{n}^{T} * (1 - S_{y}) $$</p><p>$$ \frac{\delta L}{\delta w_{j}} = \frac{\delta L}{\delta S_{j}} * \frac{\delta S_{j}}{\delta w_{j}} = -\frac{1}{S_{j}} * (-X_{n}^{T}) * S_{y} * S_{j} = X_{n}^{T} * S_{j} $$</p><h3 id="code-over-all">Code over all</h3><pre class="line-numbers language-python"><code>import numpy as np
+from typing import Tuple
+
+def softmax_loss_log(W: np.ndarray, X: np.ndarray, y: np.ndarray) -&gt; Tuple[float, np.ndarray]:
+    """
+    A loss function consisting of a softmax layer that is fed into the log-loss.
+    Loss as well as the weight derivatives are returned.
+    :param W: Weight matrix of shape (D x C)
+    :param X: Data matrix of shape (N X D)
+    :param y: Vector of labels (N x 1)
+    :return: Tuple of loss value and weight derivatives of shape (D x C).
+    """
+    N, _ = X.shape
+    
+    y_prediction = X @ W  # (N x C)
+    y_prediction -= np.max(y_prediction, axis=1, keepdims=True)  # for numerical stability
+    
+    S_nominator = np.exp(y_prediction)
+    S_denominator = np.exp(y_prediction).sum(axis=1, keepdims=True)
+    S = S_nominator / S_denominator
+
+    loss = -(1/N) * np.sum(
+        np.log(
+            S[np.arange(N), y]
+        )
+    )
+
+    S[np.arange(N), y] -= 1
+    dW = (X.T @ S) / N
+
+    return loss, dW
+</code></pre><h3 id="update-code-implementation-details">Update: Code implementation details</h3><p>Most of the implementation is relatively straightforward, doing exactly what we described previously, like computing the prediction of our ANN (line 15), the softmax matrix (18-20), or the loss (line 22-26). But there are also a few tricks in place I will explain a bit more in detail.</p><h4 id="numerical-stability">Numerical Stability</h4><pre><code class="language-python">y_prediction -= np.max(y_prediction, axis=1, keepdims=True)</code></pre><p>In line 16 we subtract the maximum value of the prediction (<strong>row-wise</strong>). Remember that the prediction has the dimension $(N \times C)$, and we did not apply softmax to it, yet. Thus, the values here can be (literally) anything. By subtracting the maximum of each row, we make sure that the biggest value is always 0. Thus we moved the range of possible values to $(-\infty, 0]$. As a result, when we apply the softmax algorithm next, our denominator (line 19) is guaranteed to be at least 1, so we will not run into issues like dividing by zero. For more details <a href="https://stackoverflow.com/a/42606665">click here</a>.</p><h4 id="softmax-values-for-j-y">Softmax values for (j = y)</h4><pre><code class="language-python">S[np.arange(N), y] -= 1
+dW = (X.T @ S) / N</code></pre><p>In lines 28-29 we subtract all values where our prediction is the correct class, by 1. Afterward, we compute the derivatives wrt the weight matrix. If you look at our previously derived formulae (just above the code block) for the loss wrt the weights ($\frac{\delta L}{\delta w_{j}}$), you can see that this is exactly what we are doing in the code (ignore the division by N, for now). But as we know, $\frac{\delta L}{\delta w_{y}}$ (the loss wrt the weights of the <strong>correct</strong> prediction class) needs to be treated differently. To adjust for this difference, we do the subtraction in line 28.</p><p>$$ \frac{\delta L}{\delta w_{j}} =  X_{n}^{T} * S_{j} =  X_{n}^{T} * (S_{y} - 1) = X_{n}^{T} * S_{y} - X_{n}^{T} = - X_{n}^{T} * (1 - S_{y}) = \frac{\delta L}{\delta w_{y}} $$</p><h4 id="division-by-n">Division by N</h4><pre><code class="language-python">dW = (X.T @ S) / N</code></pre><p>In line 29 we also divide by N (the number of samples). If you look at the dimensions of the multiplication of $X^T * S$, you see that it is $(D \times N) * (N \times C) = (D \times C)$. We can always do this multiplication, independent of the number of samples (the size of N). But does this mean, that N does not influence the values of dW? The answer is no. Surely the values in dW will increase when the number of samples will increase. To counter this, we divide by N.</p><h3 id="synonyms">Synonyms</h3><p>MCC - multiclass classification<br />wrt - with respect to<br /></p><p></p><h3 id><br /></h3>
+
+            </section>
+
+        </article>
+    </main>
+    <footer class="page-footer">
+        <h3>sffresch</h3>
+            <p>a blog about my projects</p>
+        <p><a href="../../index.html">Read more posts →</a></p>
+        <a class="powered" href="https://ghost.org" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 156 156"><g fill="none" fill-rule="evenodd"><rect fill="#15212B" width="156" height="156" rx="27"/><g transform="translate(36 36)" fill="#F6F8FA"><path d="M0 71.007A4.004 4.004 0 014 67h26a4 4 0 014 4.007v8.986A4.004 4.004 0 0130 84H4a4 4 0 01-4-4.007v-8.986zM50 71.007A4.004 4.004 0 0154 67h26a4 4 0 014 4.007v8.986A4.004 4.004 0 0180 84H54a4 4 0 01-4-4.007v-8.986z"/><rect y="34" width="84" height="17" rx="4"/><path d="M0 4.007A4.007 4.007 0 014.007 0h41.986A4.003 4.003 0 0150 4.007v8.986A4.007 4.007 0 0145.993 17H4.007A4.003 4.003 0 010 12.993V4.007z"/><rect x="67" width="17" height="17" rx="4"/></g></g></svg> Published with Ghost</a>
+    </footer>
+    
+</body>
+</html>
