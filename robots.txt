@@ -1,5 +1,0 @@
-User-agent: *
-Sitemap: http://frank690.github.io/sitemap.xml
-Disallow: /ghost/
-Disallow: /p/
-Disallow: /email/
