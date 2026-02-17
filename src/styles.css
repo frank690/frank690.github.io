@@ -1,0 +1,218 @@
+:root {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color: #e5e7eb;
+  background: #0b0f14;
+  --surface: #111827;
+  --border: #1f2937;
+  --text-muted: #b6c0d0;
+  --link: #93c5fd;
+  --link-hover: #bfdbfe;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #0b0f14;
+  color: #e5e7eb;
+}
+
+a {
+  color: inherit;
+}
+
+.site-shell {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+.stack {
+  width: min(860px, 100%);
+  display: grid;
+  gap: 14px;
+}
+
+.hero-card,
+.mid-card,
+.contact-card {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.28);
+}
+
+.hero-card {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(22px, 4vw, 36px);
+  padding-bottom: clamp(24px, 4vw, 32px);
+}
+
+.hero-main {
+  max-width: min(58ch, calc(100% - 260px));
+}
+
+.copy {
+  min-width: 0;
+}
+
+.hero-avatar {
+  position: absolute;
+  right: clamp(18px, 10%, 72px);
+  bottom: 0;
+  width: clamp(165px, 22vw, 235px);
+  height: auto;
+  display: block;
+}
+
+.kicker {
+  margin: 0 0 8px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2.05rem);
+  line-height: 1.15;
+}
+
+.subtitle {
+  margin: 14px 0 0;
+  max-width: 52ch;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.mid-card {
+  display: grid;
+  gap: 10px;
+  padding: clamp(20px, 3.4vw, 30px);
+}
+
+.company-logos {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.company-logos .logo {
+  width: auto;
+  height: 54px;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+  flex: 0 0 auto;
+}
+
+.logo-hkm {
+  height: 50px;
+}
+
+.logo-ukd {
+  height: 50px;
+}
+
+.mid-card p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.62;
+}
+
+.contact-card {
+  padding: 18px clamp(20px, 3.4vw, 30px);
+}
+
+.contact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.contact-copy {
+  margin: 0;
+  color: var(--text-muted);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.links a {
+  text-decoration: none;
+  color: var(--link);
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid #2d3b52;
+  background: #0e1624;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease,
+    transform 160ms ease;
+}
+
+.links a:hover {
+  color: var(--link-hover);
+  border-color: #48628a;
+  background: #132033;
+  transform: translateY(-1px);
+}
+
+.links a svg {
+  width: 21px;
+  height: 21px;
+  fill: currentColor;
+}
+
+@media (max-width: 760px) {
+  .hero-card {
+    padding-bottom: 14px;
+  }
+
+  .hero-main {
+    max-width: 100%;
+    padding-bottom: 130px;
+  }
+
+  .hero-avatar {
+    width: clamp(140px, 38vw, 205px);
+    right: clamp(10px, 8%, 30px);
+  }
+
+  .contact-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .company-logos {
+    justify-content: flex-start;
+  }
+}
