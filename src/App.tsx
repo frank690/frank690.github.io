@@ -4,6 +4,55 @@ const links = {
   linkedin: "https://www.linkedin.com/in/frank-eschner-a3a00a163/"
 };
 
+const companies = [
+  {
+    href: "https://hkm.de/",
+    className: "logo-hkm",
+    src: "/company-logos/hkm.svg",
+    alt: "Huttenwerke Krupp Mannesmann"
+  },
+  {
+    href: "https://www.telekom.com/en",
+    className: "logo-telekom",
+    src: "/company-logos/deutsche-telekom.svg",
+    alt: "Deutsche Telekom"
+  },
+  {
+    href: "https://www.aldi-nord.de/",
+    className: "logo-aldi",
+    src: "/company-logos/aldi-nord.svg",
+    alt: "ALDI Nord"
+  },
+  {
+    href: "https://lemken.com/en-en/",
+    className: "logo-lemken",
+    src: "/company-logos/lemken.svg",
+    alt: "LEMKEN"
+  },
+  {
+    href: "https://www.uniklinik-duesseldorf.de/patienten-besucher/klinikeninstitutezentren/klinik-fuer-neurochirurgie/erkrankungen/neuroonkologie",
+    className: "logo-ukd",
+    src: "/company-logos/ukd-neuro.svg",
+    alt: "University Clinic Dusseldorf Neuro-Oncology"
+  },
+  {
+    href: "https://www.sms-group.com/",
+    className: "logo-sms",
+    src: "/company-logos/sms-group.svg",
+    alt: "SMS group"
+  }
+];
+
+function BackgroundEffect() {
+  return (
+    <div className="background-effects" aria-hidden="true">
+      {Array.from({ length: 18 }, (_, index) => (
+        <span key={index} />
+      ))}
+    </div>
+  );
+}
+
 function MailIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -31,41 +80,53 @@ function LinkedInIcon() {
 function App() {
   return (
     <main className="site-shell" aria-labelledby="title">
+      <BackgroundEffect />
       <div className="stack">
         <section className="hero-card">
           <div className="hero-main">
             <div className="copy">
               <p className="kicker">Frank Eschner</p>
-              <h1 id="title">Building practical systems to solve problems, automate work, and enjoy the process</h1>
+              <h1 id="title">Building clean, practical systems for automation, data, and security</h1>
               <p className="subtitle">
-                Hi, I am Frank. I enjoy turning ideas into practical tools, from data and
-                software projects to hands-on hardware builds.
+                Hi, I am Frank. I turn ideas into useful tools, from data and
+                software projects to hands-on hardware builds and cyber security work.
               </p>
+              <ul className="focus-list" aria-label="Focus areas">
+                <li>Software</li>
+                <li>Data</li>
+                <li>Automation</li>
+                <li>Cyber security</li>
+              </ul>
             </div>
           </div>
-          <img
-            className="hero-avatar"
-            src="/frank-avatar.png"
-            alt="Portrait of Frank Eschner"
-            width={280}
-            height={360}
-          />
         </section>
 
         <section className="mid-card" aria-label="Experience summary">
           <div className="company-logos" aria-label="Companies">
-            <img className="logo logo-hkm" src="/company-logos/hkm.svg" alt="Huttenwerke Krupp Mannesmann" loading="lazy" />
-            <img className="logo logo-telekom" src="/company-logos/deutsche-telekom.svg" alt="Deutsche Telekom" loading="lazy" />
-            <img className="logo logo-aldi" src="/company-logos/aldi-nord.svg" alt="ALDI Nord" loading="lazy" />
-            <img className="logo logo-lemken" src="/company-logos/lemken.svg" alt="LEMKEN" loading="lazy" />
-            <img className="logo logo-ukd" src="/company-logos/ukd-neuro.svg" alt="University Clinic Dusseldorf Neuro-Oncology" loading="lazy" />
-            <img className="logo logo-sms" src="/company-logos/sms-group.svg" alt="SMS group" loading="lazy" />
+            {companies.map((company) => (
+              <a
+                className="company-logo-link"
+                href={company.href}
+                target="_blank"
+                rel="noreferrer noopener"
+                aria-label={`Visit ${company.alt}`}
+                title={company.alt}
+                key={company.alt}
+              >
+                <img
+                  className={`logo ${company.className}`}
+                  src={company.src}
+                  alt={company.alt}
+                  loading="lazy"
+                />
+              </a>
+            ))}
           </div>
           <p>
             I have most of my experience in the steel industry and currently lead
             digitalization projects at the great Huettenwerke Krupp Mannesmann in
             Duisburg. Before that, I worked in fields like retail, agriculture,
-            medicine, and IT security as a data scientist, engineer, or software
+            medicine, and cyber security as a data scientist, engineer, or software
             developer, always trying to improve on the status quo and deliver great
             solutions.
           </p>
